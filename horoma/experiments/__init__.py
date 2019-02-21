@@ -7,6 +7,8 @@ from horoma.cfg import DEVICE
 from types import SimpleNamespace
 from horoma.constants import TrainMode
 
+from horoma.utils.score import compute_metrics
+
 
 class HoromaExperiment(object):
     '''
@@ -175,6 +177,11 @@ class HoromaExperiment(object):
                 # No validation point found on this cluster. We can't label it.
                 self._cluster_label_mapping[i] = -1
         self.save_experiment(None, save_embedding=False)
+
+        def remap(x): return self._cluster_label_mapping[x]
+        predicted_labels = np.apply_along_axis(remap, 0, predicted_labels)
+        acc, f1 = compute_metrics(true_labels, predicted_labels)
+        print("Validation Acc: {} F1 score: {}".format(acc, f1))
 
     def train(self, train_loader, epochs,
               valid_dataset=None, start_epoch=None, mode=TrainMode.TRAIN_ALL):
