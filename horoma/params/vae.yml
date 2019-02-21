@@ -1,0 +1,9 @@
+optimizer_params:
+  lr: 1e-3
+optimizer: Adam
+criterion: VAE_LOSS
+kmeans_cluster_params:
+  n_cluster: 10
+gmm_cluter_params:
+  n_cluster: 10
+exp_file: vae
