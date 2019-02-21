@@ -1,0 +1,7 @@
+optimizer_params:
+  lr: 1e-3
+optimizer: Adam
+criterion: VAE_LOSS
+cluster_params:
+  n_components: 10
+exp_file: vae_gmm.pt
