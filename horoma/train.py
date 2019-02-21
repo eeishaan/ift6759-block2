@@ -48,7 +48,7 @@ def get_train_parser(parent=None):
         type=str,
         help="Clustering algorithm to use",
         choices=[e.name for e in TrainMode],
-        default=TrainMode[0].name,
+        default=TrainMode.TRAIN_ALL.name,
         required=False,
     )
 
