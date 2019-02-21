@@ -74,7 +74,7 @@ def train_model(embedding_name, cluster_method_name, mode, params):
     embedding_model = embedding_factory(
         embedding_name, params.get('embedding_params', {}))
     optim_parameters = params['optimizer_params']
-    optim_parameters['params'] = embedding_model
+    optim_parameters['params'] = embedding_model.parameters()
     embedding_optim = optim_factory(params['optimizer'], optim_parameters)
     crit_parameters = params.get('criterion_params', {})
     embedding_crit = crit_factory(params['criterion'], crit_parameters)
