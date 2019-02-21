@@ -10,9 +10,11 @@ DEF_LABELS_FILE = DATA_ROOT_FOLDER / 'definition_labels.txt'
 TEST_DATA_FILE = DATA_ROOT_FOLDER / 'test_x.dat'
 
 # project paths
-PROJECT_ROOT = Path(os.path.abspath(os.path.realpath(__file__)))
-PCA_MODEL_DEFAULT_PATH = PROJECT_ROOT / 'models/saved/pca_model.sav'
-TSNE_MODEL_DEFAULT_PATH = PROJECT_ROOT / 'models/saved/tsne_model.sav'
+PROJECT_ROOT = Path(os.path.dirname(os.path.abspath(__file__)))
+SAVED_MODEL_DIR = Path(os.path.abspath(PROJECT_ROOT / '../saved_models'))
+PCA_MODEL_DEFAULT_PATH = SAVED_MODEL_DIR / 'pca_model.sav'
+TSNE_MODEL_DEFAULT_PATH = SAVED_MODEL_DIR / 'tsne_model.sav'
+RESULT_DIR = Path(os.path.abspath(PROJECT_ROOT / '../results'))
 
 # data variables
 TRAINING_DATA_SIZE = 1614214
