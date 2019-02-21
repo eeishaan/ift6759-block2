@@ -44,7 +44,7 @@ def get_train_parser(parent=None):
     )
 
     parser.add_argument(
-        '--train-mode',
+        '--mode',
         type=str,
         help="Clustering algorithm to use",
         choices=[e.name for e in TrainMode],
