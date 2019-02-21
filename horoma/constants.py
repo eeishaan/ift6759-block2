@@ -3,7 +3,7 @@ from pathlib import Path
 from enum import Enum
 # data file paths
 DATA_ROOT_FOLDER = Path('/rap/jvb-000-aa/COURS2019/etudiants/data/horoma')
-TRAINING_DATA_FILE = DATA_ROOT_FOLDER / 'train_x.dat'
+TRAINING_DATA_FILE = DATA_ROOT_FOLDER / 'train_overlapped_x.dat'
 VALIDATION_DATA_FILE = DATA_ROOT_FOLDER / 'valid_x.dat'
 VALIDATION_LABELS_FILE = DATA_ROOT_FOLDER / 'valid_y.txt'
 DEF_LABELS_FILE = DATA_ROOT_FOLDER / 'definition_labels.txt'
