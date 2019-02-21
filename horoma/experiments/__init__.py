@@ -60,8 +60,8 @@ class HoromaExperiment(object):
             ctx.epoch, ctx.running_loss.item())
         print(message)
 
-    def before_forwardp(self, ctx, data, labels):
-        return data, labels
+    def before_forwardp(self, ctx, data):
+        return data
 
     def before_test(self, ctx):
         ctx.predictions = []
@@ -128,23 +128,23 @@ class HoromaExperiment(object):
             )
 
             self.before_train(ctx)
-            for _, (data, labels) in enumerate(train_loader):
+            for _, data in enumerate(train_loader):
 
-                data, labels = data.to(DEVICE), labels.to(DEVICE)
+                data = data.to(DEVICE)
 
                 # before_forwardp can add second layer of transformation
-                data, labels = self.before_forwardp(ctx, data, labels)
+                data = self.before_forwardp(ctx, data)
 
                 # zero out previous gradient
                 self._embedding_model.zero_grad()
 
                 outputs = self._embedding_model(data)
-                loss = self.compute_loss(ctx, outputs, labels)
+                loss = self.compute_loss(ctx, outputs, data)
                 ctx.running_loss += loss
                 loss.backward()
                 self._embedding_optim.step()
 
-                self.after_forwardp(ctx, outputs, labels)
+                self.after_forwardp(ctx, outputs, data)
             self.after_train(ctx)
 
     def _train_cluster(self, valid_dataset):
