@@ -20,4 +20,4 @@ class VAEExperiment(HoromaExperiment):
         )
 
     def compute_loss(self, ctx, outputs, data):
-        self._embedding_crit(data, *outputs)
+        return self._embedding_crit(data, *outputs)
