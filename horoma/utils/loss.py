@@ -2,7 +2,7 @@ import torch
 import torch.nn.functional as F
 
 
-def vae_loss(recon_x, x, mu, logvar):
+def vae_loss(x, recon_x, mu, logvar):
     """
     Reference: https://github.com/pytorch/examples/blob/master/vae/main.py
     """
