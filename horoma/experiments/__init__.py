@@ -34,37 +34,35 @@ class HoromaExperiment(object):
         # initialize epoch var correctly
         self._start_epoch = 0
 
-    def after_eval(self, ctx):
-        pass
-
     def after_forwardp(self, ctx, outputs, labels):
         pass
 
-    def after_minibatch_eval(self, ctx, outputs, labels):
-        pass
-
-    def after_minibatch_test(self, ctx, outputs):
-        pass
+    def after_minibatch_test(self, ctx, ouputs):
+        # map them to correct labels
+        def remap(x): return self._cluster_label_mapping[x]
+        predictions = np.apply_along_axis(remap, 0, ouputs)
+        ctx.predictions.extend(predictions)
 
     def after_test(self, ctx):
-        pass
+        return np.array(ctx.predictions)
 
     def after_train(self, ctx):
-        # save embedding after 10 epochs
-        if ctx.epoch % 10 == 9:
-            self.save_experiment(ctx, save_embedding=True, save_cluster=False)
+        if ctx.epoch % 10 != 0:
+            return
 
-    def before_minibatch_eval(self, ctx, data, labels):
-        return data, labels
+        # save embedding model after 10 epochs
+        self.save_experiment(ctx, save_embedding=True, save_cluster=False)
 
-    def before_eval(self, ctx):
-        pass
+        # print loss
+        message = "Epoch: {} Train Loss: {}".format(
+            ctx.epoch, ctx.running_loss.item())
+        print(message)
 
     def before_forwardp(self, ctx, data, labels):
         return data, labels
 
     def before_test(self, ctx):
-        pass
+        ctx.predictions = []
 
     def before_train(self, ctx):
         pass
@@ -73,24 +71,13 @@ class HoromaExperiment(object):
         loss = self._embedding_crit(outputs, labels)
         return loss
 
-    def eval(self, dataloader):
-        self._embedding_model.eval()
-        with torch.no_grad():
-            ctx = SimpleNamespace()
-            self.before_eval(ctx)
-            for _, (data, labels) in enumerate(dataloader):
-                data, labels = data.to(DEVICE), labels.to(DEVICE)
-                data, labels = self.before_minibatch_eval(ctx, data, labels)
-                outputs = self._embedding_model(data)
-                self.after_minibatch_eval(ctx, outputs, labels)
-            return self.after_eval(ctx)
-
     def load_experiment(self, load_embedding=True, load_cluster=True):
         if load_embedding:
             checkpoint = torch.load(self._embedding_file)
             self._embedding_model.load_state_dict(
                 checkpoint['model_state_dict'])
-            if 'optimizer_state_dict' in checkpoint and hasattr(self, '_embedding_optim'):
+            if 'optimizer_state_dict' in checkpoint \
+                    and hasattr(self, '_embedding_optim'):
                 self._embedding_optim.load_state_dict(
                     checkpoint['optimizer_state_dict'])
             self._start_epoch = checkpoint.get('epoch', 0)
@@ -121,8 +108,9 @@ class HoromaExperiment(object):
             self.before_test(ctx)
             for _, data in enumerate(dataloader):
                 data = data.to(DEVICE)
-                outputs = self._embedding_model(data)
-                self.after_minibatch_test(ctx, outputs)
+                embedding = self._embedding_model.embedding(data)
+                predictions = self._cluster_obj.transform(embedding)
+                self.after_minibatch_test(ctx, predictions)
         return self.after_test(ctx)
 
     def _train_embedding(self, train_loader, epochs, start_epoch):
@@ -162,7 +150,7 @@ class HoromaExperiment(object):
 
         # get validation data embedding
         self._embedding_model.eval()
-        data_embedding = self._embedding_model(data)
+        data_embedding = self._embedding_model.embedding(data)
 
         # fit the cluster
         predicted_labels = self._cluster_obj.fit_transform(data_embedding)
@@ -188,10 +176,13 @@ class HoromaExperiment(object):
                 self._cluster_label_mapping[i] = -1
         self.save_experiment(None, save_embedding=False)
 
-    def train(self, train_loader, epochs, valid_dataset=None, start_epoch=None, mode=TrainMode.TRAIN_ALL):
+    def train(self, train_loader, epochs,
+              valid_dataset=None, start_epoch=None, mode=TrainMode.TRAIN_ALL):
         # set start_epoch differently if you want to resume training from a
         # checkpoint.
-        start_epoch = start_epoch if start_epoch is not None else self._start_epoch
+        start_epoch = start_epoch \
+            if start_epoch is not None \
+            else self._start_epoch
 
         if mode == TrainMode.TRAIN_ONLY_CLUSTER:
             self.load_experiment(load_embedding=True, load_cluster=False)
@@ -201,7 +192,8 @@ class HoromaExperiment(object):
         if mode == TrainMode.TRAIN_ONLY_EMBEDDING:
             return
         if valid_dataset is None:
-            err = 'ERROR: Validation dataset is required for training cluster model'
+            err = 'ERROR: Validation dataset is required for' +\
+                ' training cluster model'
             print(err)
             return
 
