@@ -2,14 +2,14 @@
 import argparse
 import sys
 
-# from horoma.test import get_test_parser, test
+from horoma.test import get_test_parser, test
 from horoma.train import get_train_parser, train
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='horoma')
     subparsers = parser.add_subparsers(title="commands", dest="command")
     get_train_parser(subparsers)
-    # get_test_parser(subparsers)
+    get_test_parser(subparsers)
 
     args = parser.parse_args()
     if args.command is None:
@@ -17,5 +17,5 @@ if __name__ == '__main__':
         sys.exit(1)
     if args.command == 'train':
         train(args)
-    # elif args.command == 'test':
-    #     print(test(args))
+    elif args.command == 'test':
+        print(test(args))
