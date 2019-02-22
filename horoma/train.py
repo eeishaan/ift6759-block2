@@ -60,6 +60,8 @@ def get_train_parser(parent=None):
 
 
 def train_model(embedding_name, cluster_method_name, mode, params):
+    mode = TrainMode[mode]
+
     # load data
     train_dataset = HoromaDataset(
         split='train_overlapped', transform=transforms.ToTensor())
