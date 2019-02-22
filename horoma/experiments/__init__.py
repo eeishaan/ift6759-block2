@@ -191,7 +191,8 @@ class HoromaExperiment(object):
 
         predicted_labels = [self._remap(x) for x in predicted_labels]
         acc, f1, ari = compute_metrics(true_labels, predicted_labels)
-        print("Validation Acc: {} F1 score: {} ARI: {}".format(acc, f1, ari))
+        print("Validation Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f}".format(
+            acc, f1, ari))
 
     def train(self, train_loader, epochs,
               valid_loader=None, start_epoch=None, mode=TrainMode.TRAIN_ALL):
