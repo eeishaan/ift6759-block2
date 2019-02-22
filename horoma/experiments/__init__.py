@@ -60,6 +60,10 @@ class HoromaExperiment(object):
             ctx.epoch, ctx.running_loss.item())
         print(message)
 
+        # check cluster performance
+        if ctx.valid_loader:
+            self._train_cluster(ctx.valid_loader, no_save=True)
+
     def before_forwardp(self, ctx, data):
         return data
 
@@ -115,7 +119,7 @@ class HoromaExperiment(object):
                 self.after_minibatch_test(ctx, predictions)
         return self.after_test(ctx)
 
-    def _train_embedding(self, train_loader, epochs, start_epoch):
+    def _train_embedding(self, train_loader, epochs, start_epoch, valid_loader):
         for epoch in range(start_epoch, epochs):
 
             # first train embedding model
@@ -125,6 +129,7 @@ class HoromaExperiment(object):
             ctx = SimpleNamespace(
                 epoch=epoch,
                 running_loss=0,
+                valid_loader=valid_loader
             )
 
             self.before_train(ctx)
@@ -147,7 +152,7 @@ class HoromaExperiment(object):
                 self.after_forwardp(ctx, outputs, data)
             self.after_train(ctx)
 
-    def _train_cluster(self, valid_loader):
+    def _train_cluster(self, valid_loader, no_save=False):
 
         # get validation data embedding
         true_labels = []
@@ -180,11 +185,13 @@ class HoromaExperiment(object):
             else:
                 # No validation point found on this cluster. We can't label it.
                 self._cluster_label_mapping[i] = -1
-        self.save_experiment(None, save_embedding=False)
+
+        if not no_save:
+            self.save_experiment(None, save_embedding=False)
 
         predicted_labels = [self._remap(x) for x in predicted_labels]
-        acc, f1 = compute_metrics(true_labels, predicted_labels)
-        print("Validation Acc: {} F1 score: {}".format(acc, f1))
+        acc, f1, ari = compute_metrics(true_labels, predicted_labels)
+        print("Validation Acc: {} F1 score: {} ARI: {}".format(acc, f1, ari))
 
     def train(self, train_loader, epochs,
               valid_loader=None, start_epoch=None, mode=TrainMode.TRAIN_ALL):
@@ -197,7 +204,8 @@ class HoromaExperiment(object):
         if mode == TrainMode.TRAIN_ONLY_CLUSTER:
             self.load_experiment(load_embedding=True, load_cluster=False)
         else:
-            self._train_embedding(train_loader, epochs, start_epoch)
+            self._train_embedding(train_loader, epochs,
+                                  start_epoch, valid_loader)
 
         if mode == TrainMode.TRAIN_ONLY_EMBEDDING:
             return
