@@ -150,7 +150,8 @@ class HoromaExperiment(object):
             self.after_train(ctx)
 
     def _train_cluster(self, valid_dataset):
-        data, true_labels = valid_dataset
+        data = valid_dataset.data
+        true_labels = valid_dataset.get_labels()
 
         # get validation data embedding
         self._embedding_model.eval()

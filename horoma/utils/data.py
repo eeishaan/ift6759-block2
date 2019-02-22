@@ -74,3 +74,7 @@ class HoromaDataset(Dataset):
         if self.targets is not None:
             return self.transform(self.data[index]), torch.Tensor([self.targets[index]])
         return self.transform(self.data[index])
+
+    def get_labels(self):
+        if self.targets is not None:
+            return self.targets
