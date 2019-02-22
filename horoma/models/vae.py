@@ -38,4 +38,4 @@ class VAE(nn.Module):
     def embedding(self, x):
         mu, logvar = self.encode(x.view(-1, 3072))
         z = self.reparameterize(mu, logvar)
-        return z
+        return z.detach().numpy()
