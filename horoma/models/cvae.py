@@ -56,7 +56,7 @@ class CVAE(nn.Module):
     def decode(self, z):
         h = F.leaky_relu(self.fc2(z))
         h = F.leaky_relu(self.fc3(h))
-        h = h.view(-1, 3, 8, 8)
+        h = h.view(-1, 64, 8, 8)
         h = self.decoder(h)
         return h
 
