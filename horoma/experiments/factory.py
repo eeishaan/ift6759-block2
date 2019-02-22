@@ -2,6 +2,7 @@ from horoma.experiments import HoromaExperiment
 
 SUPPORTED_EXP = {
     'vae': HoromaExperiment,
+    'cvae': HoromaExperiment
 }
 
 
