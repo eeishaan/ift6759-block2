@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 
 import argparse
-import logging
 import os
-import sys
 
-import numpy as np
-import torch
 import yaml
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
-from horoma.constants import PARAM_DIR, SAVED_MODEL_DIR
+from horoma.constants import SAVED_MODEL_DIR
 from horoma.experiments.factory import experiment_factory
 from horoma.models.factory import (cluster_factory, embedding_factory,
                                    supported_cluster, supported_embedding)
@@ -46,9 +42,9 @@ def get_test_parser(parent=None):
     )
 
     parser.add_argument(
-        '-d', '--data-file',
+        '-d', '--data-dir',
         type=str,
-        help='File path of the test data',
+        help='Directory of the test data',
         required=True
     )
 
@@ -63,9 +59,8 @@ def get_test_parser(parent=None):
 
 
 def test(args):
-    data_file = args.data_file
+    data_dir = args.data_dir
     model_file = args.model_path
-    model = args.model
 
     # if no model file is specified, use the one specified in params file
     if model_file is None:
@@ -76,7 +71,7 @@ def test(args):
 
     # load data
     test_dataset = HoromaDataset(
-        split='test', transform=transforms.ToTensor())
+        data_dir=data_dir, split='test', transform=transforms.ToTensor())
     test_loader = DataLoader(test_dataset, batch_size=100, shuffle=False)
     # get embedding model
     embedding_model = embedding_factory(
