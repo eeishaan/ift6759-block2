@@ -170,8 +170,9 @@ class HoromaExperiment(object):
         self._cluster_label_mapping = {}
 
         # get number of clusters for GMM or Kmeans
-        n_clusters = getattr(self._cluster_obj, 'weights_', None) or getattr(
-            self._cluster_obj, 'cluster_centers_', None)
+        n_clusters = getattr(self._cluster_obj, 'weights_', None)
+        if n_clusters is None:
+            n_clusters = getattr(self._cluster_obj, 'cluster_centers_', None)
         n_clusters = n_clusters.shape[0]
 
         # construct the cluster_label mapping
