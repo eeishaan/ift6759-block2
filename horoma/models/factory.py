@@ -2,11 +2,13 @@
 Supported model index
 '''
 from horoma.models.vae import VAE
+from horoma.models.cvae import CVAE
 from sklearn.cluster import KMeans
 from sklearn.mixture import GaussianMixture
 
 EMBEDDING_MODELS = {
-    'vae': VAE
+    'vae': VAE,
+    'cvae': CVAE
 }
 
 CLUSTER_MODELS = {
