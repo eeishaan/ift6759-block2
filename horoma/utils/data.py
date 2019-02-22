@@ -30,13 +30,13 @@ class HoromaDataset(Dataset):
         if split == "train":
             self.nb_exemples = 150700
         elif split == "valid":
-            self.nb_exemples = 499
+            self.nb_exemples = 480
         elif split == "test":
-            self.nb_exemples = 483
+            self.nb_exemples = 498
         elif split == "train_overlapped":
-            self.nb_exemples = 544027
+            self.nb_exemples = 544749
         elif split == "valid_overlapped":
-            self.nb_exemples = 1380
+            self.nb_exemples = 1331
         else:
             raise(
                 "Dataset: Invalid split. Must be " +
