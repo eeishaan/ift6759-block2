@@ -61,11 +61,11 @@ class CVAE(nn.Module):
         return h
 
     def forward(self, x):
-        mu, logvar = self.encode(x.view)
+        mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar)
         return self.decode(z), mu, logvar
 
     def embedding(self, x):
-        mu, logvar = self.encode(x.view)
+        mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar)
         return z.detach().cpu().numpy()
