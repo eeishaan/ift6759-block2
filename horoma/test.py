@@ -97,7 +97,8 @@ def test(args):
 
     # get experiment object
     experiment = experiment_factory(args.embedding, experiment_params)
-    experiment.test(test_loader)
+    experiment.load_experiment()
+    return experiment.test(test_loader)
 
 
 if __name__ == '__main__':
