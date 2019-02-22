@@ -150,6 +150,9 @@ class HoromaExperiment(object):
                 self._embedding_optim.step()
 
                 self.after_forwardp(ctx, outputs, data)
+
+            # Divide the loss by the number of batches
+            ctx.running_loss /= len(train_loader)
             self.after_train(ctx)
 
     def _train_cluster(self, valid_loader, no_save=False):
