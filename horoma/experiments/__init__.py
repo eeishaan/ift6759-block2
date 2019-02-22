@@ -42,9 +42,9 @@ class HoromaExperiment(object):
     def after_forwardp(self, ctx, outputs, labels):
         pass
 
-    def after_minibatch_test(self, ctx, ouputs):
+    def after_minibatch_test(self, ctx, outputs):
         # map them to correct labels
-        predictions = [self._remap(x) for x in ouputs]
+        predictions = [self._remap(x) for x in outputs]
         ctx.predictions.extend(predictions)
 
     def after_test(self, ctx):
