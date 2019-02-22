@@ -54,7 +54,6 @@ class HoromaExperiment(object):
         # save embedding model after 10 epochs
         if ctx.epoch % 10 != 9:
             self.save_experiment(ctx, save_embedding=True, save_cluster=False)
-            return
 
         # print loss
         message = "Epoch: {} Train Loss: {}".format(
