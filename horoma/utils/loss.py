@@ -15,7 +15,7 @@ def vae_loss(outputs, x):
 
 def cvae_loss(outputs, x):
     recon_x, mu, logvar = outputs
-    BCE = F.binary_cross_entropy(recon_x, x, size_average=False)
+    BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
 
     return BCE + KLD
