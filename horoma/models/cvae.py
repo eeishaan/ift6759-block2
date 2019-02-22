@@ -11,52 +11,55 @@ class CVAE(nn.Module):
     def __init__(self):
         super(CVAE, self).__init__()
 
+        self.latent_dim = 32
+        self.hidden_size = 2
+        self.hidden_filter = 128
+        self.hidden_dim = self.hidden_size ** 2 * self.hidden_filter
         self.encoder = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=32,
-                      kernel_size=4, padding=1, stride=2),
+                      kernel_size=4, stride=2),  # 15
             nn.ReLU(),
-            nn.Dropout(0.5),
+            # nn.Dropout(0.5),
             nn.Conv2d(in_channels=32, out_channels=64,
-                      kernel_size=4, padding=1, stride=2),
+                      kernel_size=4, stride=2),  # 6
             nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Conv2d(in_channels=64, out_channels=64,
-                      kernel_size=3, padding=1, stride=1),
+            # nn.Dropout(0.5),
+            nn.Conv2d(in_channels=64, out_channels=128,
+                      kernel_size=4, stride=2),  # 2
             nn.ReLU(),
-            nn.Dropout(0.5),
+            # nn.Dropout(0.5),
         )
-        self.fc11 = nn.Linear(8*8*64, 8)
-        self.fc12 = nn.Linear(8*8*64, 8)
-        self.fc2 = nn.Linear(8, 64*8)
-        self.fc3 = nn.Linear(64*8, 64*8*8)
+        self.fc11 = nn.Linear(self.hidden_dim, self.latent_dim)
+        self.fc12 = nn.Linear(self.hidden_dim, self.latent_dim)
+        self.fc2 = nn.Linear(self.latent_dim, self.hidden_dim)
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(in_channels=64, out_channels=64,
-                               kernel_size=3, padding=1, stride=1),
-            nn.LeakyReLU(),
-            nn.Dropout(0.5),
+            nn.ConvTranspose2d(in_channels=128, out_channels=64,
+                               kernel_size=4, stride=2),  # 6
+            nn.ReLU(),
+            # nn.Dropout(0.5),
             nn.ConvTranspose2d(in_channels=64, out_channels=32,
-                               kernel_size=4, padding=1, stride=2),
-            nn.LeakyReLU(),
-            nn.Dropout(0.5),
+                               kernel_size=5, stride=2),  # 15
+            nn.ReLU(),
+            # nn.Dropout(0.5),
             nn.ConvTranspose2d(in_channels=32, out_channels=3,
-                               kernel_size=4, padding=1, stride=2),
-            nn.Sigmoid()
+                               kernel_size=4, stride=2),  # 32
+            nn.Sigmoid(),
         )
 
     def encode(self, x):
         h = self.encoder(x)
-        h = h.view(-1, 8*8*64)
+        h = h.view(-1, self.hidden_dim)
         return self.fc11(h), self.fc12(h)
 
     def reparameterize(self, mu, logvar):
-        std = torch.exp(0.5 * logvar)
-        eps = torch.randn_like(std)
-        return eps.mul(std).add_(mu)
+        std = logvar.mul(0.5).exp_()
+        esp = torch.randn(*mu.size())
+        z = mu + std * esp
+        return z
 
     def decode(self, z):
-        h = F.leaky_relu(self.fc2(z))
-        h = F.leaky_relu(self.fc3(h))
-        h = h.view(-1, 64, 8, 8)
+        h = F.relu(self.fc2(z))
+        h = h.view(-1, self.hidden_filter, self.hidden_size, self.hidden_size)
         h = self.decoder(h)
         return h
 
