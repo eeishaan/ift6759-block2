@@ -149,16 +149,19 @@ class HoromaExperiment(object):
                 self.after_forwardp(ctx, outputs, data)
             self.after_train(ctx)
 
-    def _train_cluster(self, valid_dataset):
-        data = valid_dataset.data
-        true_labels = valid_dataset.get_labels()
+    def _train_cluster(self, valid_loader):
 
         # get validation data embedding
+        true_labels = []
+        embeddings = []
         self._embedding_model.eval()
-        data_embedding = self._embedding_model.embedding(data)
-
+        for data, labels in valid_loader:
+            data = data.to(DEVICE)
+            true_labels.extend(labels.tolist())
+            data_embedding = self._embedding_model.embedding(data)
+            embeddings.extend(data_embedding.tolist())
         # fit the cluster
-        predicted_labels = self._cluster_obj.fit_transform(data_embedding)
+        predicted_labels = self._cluster_obj.fit_transform(embeddings)
 
         self._cluster_label_mapping = {}
 
@@ -187,7 +190,7 @@ class HoromaExperiment(object):
         print("Validation Acc: {} F1 score: {}".format(acc, f1))
 
     def train(self, train_loader, epochs,
-              valid_dataset=None, start_epoch=None, mode=TrainMode.TRAIN_ALL):
+              valid_loader=None, start_epoch=None, mode=TrainMode.TRAIN_ALL):
         # set start_epoch differently if you want to resume training from a
         # checkpoint.
         start_epoch = start_epoch \
@@ -201,10 +204,10 @@ class HoromaExperiment(object):
 
         if mode == TrainMode.TRAIN_ONLY_EMBEDDING:
             return
-        if valid_dataset is None:
+        if valid_loader is None:
             err = 'ERROR: Validation dataset is required for' +\
                 ' training cluster model'
             print(err)
             return
 
-        self._train_cluster(valid_dataset)
+        self._train_cluster(valid_loader)

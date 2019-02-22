@@ -66,7 +66,7 @@ def train_model(embedding_name, cluster_method_name, mode, params):
     valid_dataset = HoromaDataset(
         split='valid', transform=transforms.ToTensor())
     train_loader = DataLoader(train_dataset, batch_size=100, shuffle=True)
-
+    valid_loader = DataLoader(valid_dataset, batch_size=100, shuffle=False)
     # get embedding model
     embedding_model = embedding_factory(
         embedding_name, params.get('embedding_params', {}))
@@ -94,7 +94,7 @@ def train_model(embedding_name, cluster_method_name, mode, params):
 
     # get experiment object
     experiment = experiment_factory(embedding_name, experiment_params)
-    experiment.train(train_loader, params['epochs'], valid_dataset, mode=mode)
+    experiment.train(train_loader, params['epochs'], valid_loader, mode=mode)
 
 
 def train(args):
