@@ -21,7 +21,7 @@ class CVAE(nn.Module):
             nn.ReLU(),
             nn.Dropout(0.5),
             nn.Conv2d(in_channels=64, out_channels=64,
-                      kernel_size=4, padding=1, stride=1),
+                      kernel_size=3, padding=1, stride=1),
             nn.ReLU(),
             nn.Dropout(0.5),
         )
@@ -31,7 +31,7 @@ class CVAE(nn.Module):
         self.fc3 = nn.Linear(64*8, 64*8*8)
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(in_channels=64, out_channels=64,
-                               kernel_size=4, padding=1, stride=1),
+                               kernel_size=3, padding=1, stride=1),
             nn.LeakyReLU(),
             nn.Dropout(0.5),
             nn.ConvTranspose2d(in_channels=64, out_channels=32,
