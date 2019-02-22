@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 import argparse
-import logging
 import os
 
-import numpy as np
-import torch
 import yaml
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
-from horoma.constants import TrainMode, SAVED_MODEL_DIR
+from horoma.constants import SAVED_MODEL_DIR, TrainMode
 from horoma.experiments.factory import experiment_factory
 from horoma.models.factory import (cluster_factory, embedding_factory,
                                    supported_cluster, supported_embedding)

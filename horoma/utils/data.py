@@ -1,11 +1,10 @@
 import os
-from enum import Enum
 
 import numpy as np
 import torch
 from torch.utils.data import Dataset
 
-from horoma.constants import DATA_ROOT_FOLDER, DataSplit
+from horoma.constants import DATA_ROOT_FOLDER
 
 
 class HoromaDataset(Dataset):

@@ -36,13 +36,15 @@ class HoromaExperiment(object):
         # initialize epoch var correctly
         self._start_epoch = 0
 
+    def _remap(self, x):
+        return self._cluster_label_mapping[x]
+
     def after_forwardp(self, ctx, outputs, labels):
         pass
 
     def after_minibatch_test(self, ctx, ouputs):
         # map them to correct labels
-        def remap(x): return self._cluster_label_mapping[x]
-        predictions = np.apply_along_axis(remap, 0, ouputs)
+        predictions = np.apply_along_axis(self._remap, 0, ouputs)
         ctx.predictions.extend(predictions)
 
     def after_test(self, ctx):
@@ -178,8 +180,8 @@ class HoromaExperiment(object):
                 self._cluster_label_mapping[i] = -1
         self.save_experiment(None, save_embedding=False)
 
-        def remap(x): return self._cluster_label_mapping[x]
-        predicted_labels = np.apply_along_axis(remap, 0, predicted_labels)
+        predicted_labels = np.apply_along_axis(
+            self._remap, 0, predicted_labels)
         acc, f1 = compute_metrics(true_labels, predicted_labels)
         print("Validation Acc: {} F1 score: {}".format(acc, f1))
 

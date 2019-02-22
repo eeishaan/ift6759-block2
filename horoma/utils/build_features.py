@@ -1,5 +1,3 @@
-import os
-
 from sklearn.decomposition import PCA
 from sklearn.manifold import TSNE
 from torch import load, save
