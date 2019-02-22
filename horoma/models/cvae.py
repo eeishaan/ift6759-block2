@@ -52,10 +52,9 @@ class CVAE(nn.Module):
         return self.fc11(h), self.fc12(h)
 
     def reparameterize(self, mu, logvar):
-        std = logvar.mul(0.5).exp_()
-        esp = torch.randn(*mu.size())
-        z = mu + std * esp
-        return z
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return eps.mul(std).add_(mu)
 
     def decode(self, z):
         h = F.relu(self.fc2(z))
