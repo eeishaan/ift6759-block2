@@ -44,7 +44,7 @@ class HoromaExperiment(object):
 
     def after_minibatch_test(self, ctx, ouputs):
         # map them to correct labels
-        predictions = np.apply_along_axis(self._remap, 0, ouputs)
+        predictions = [self._remap(x) for x in ouputs]
         ctx.predictions.extend(predictions)
 
     def after_test(self, ctx):
@@ -113,7 +113,7 @@ class HoromaExperiment(object):
             for _, data in enumerate(dataloader):
                 data = data.to(DEVICE)
                 embedding = self._embedding_model.embedding(data)
-                predictions = self._cluster_obj.transform(embedding)
+                predictions = self._cluster_obj.predict(embedding)
                 self.after_minibatch_test(ctx, predictions)
         return self.after_test(ctx)
 
@@ -157,12 +157,13 @@ class HoromaExperiment(object):
         self._embedding_model.eval()
         for data, labels in valid_loader:
             data = data.to(DEVICE)
-            true_labels.extend(labels.tolist())
+            true_labels.extend(labels.int().view(-1).tolist())
             data_embedding = self._embedding_model.embedding(data)
             embeddings.extend(data_embedding.tolist())
-        # fit the cluster
-        predicted_labels = self._cluster_obj.fit_transform(embeddings)
+        true_labels = np.array(true_labels)
 
+        # fit the cluster
+        predicted_labels = self._cluster_obj.fit_predict(embeddings)
         self._cluster_label_mapping = {}
 
         # get number of clusters for GMM or Kmeans
@@ -174,18 +175,16 @@ class HoromaExperiment(object):
         for i in range(n_clusters):
             # filter data which was predicted to be in ith cluster and
             # get their true label
-            filtered_labels = true_labels[np.where(predicted_labels == i)]
-            if len(filtered_labels) > 0:
-                counts = np.bincount(filtered_labels)
-                max_voted_label = np.argmax(counts)
-                self._cluster_label_mapping[i] = max_voted_label
+            idx = np.where(predicted_labels == i)[0]
+            if len(idx) != 0:
+                labels_freq = np.bincount(true_labels[idx])
+                self._cluster_label_mapping[i] = np.argmax(labels_freq)
             else:
                 # No validation point found on this cluster. We can't label it.
                 self._cluster_label_mapping[i] = -1
         self.save_experiment(None, save_embedding=False)
 
-        predicted_labels = np.apply_along_axis(
-            self._remap, 0, predicted_labels)
+        predicted_labels = [self._remap(x) for x in predicted_labels]
         acc, f1 = compute_metrics(true_labels, predicted_labels)
         print("Validation Acc: {} F1 score: {}".format(acc, f1))
 
