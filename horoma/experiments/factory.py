@@ -1,7 +1,8 @@
 from horoma.experiments import HoromaExperiment
+from horoma.experiments.vae import VAEExperiment
 
 SUPPORTED_EXP = {
-    'vae': HoromaExperiment,
+    'vae': VAEExperiment,
 }
 
 
