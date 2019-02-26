@@ -13,12 +13,12 @@ from horoma.utils.score import compute_metrics
 class CVAEExperiment(HoromaExperiment):
 
     def compute_loss(self, ctx, outputs, x, predicted_clusters):
-        recon_x, mu, logvar = outputs
+        recon_x, mu, logvar, output_embedding = outputs
         BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        output_embedding = self._embedding_model.reparameterize(mu, logvar)
+
         _lambda = 0.05
-        cluster_error = torch.norm(
+        cluster_error = _lambda * torch.norm(
             output_embedding - predicted_clusters).pow(2)
         return BCE + KLD + cluster_error
 
@@ -47,8 +47,8 @@ class CVAEExperiment(HoromaExperiment):
                 fit_fn = getattr(self._cluster_obj, 'partial_fit', None) or \
                     getattr(self._cluster_obj, 'fit')
 
-                numpy_data = data.cpu().numpy()
-
+                output_embedding = outputs[3]
+                numpy_data = output_embedding.cpu().numpy()
                 # fit the cluster
                 fit_fn(numpy_data)
 
@@ -59,7 +59,8 @@ class CVAEExperiment(HoromaExperiment):
                 predicted_centers = cluster_centers[predicted_clusters]
                 predicted_centers = torch.Tensor(predicted_centers).to(DEVICE)
 
-                loss = self.compute_loss(ctx, outputs, data, predicted_centers)
+                loss = self.compute_loss(
+                    ctx, outputs, data, predicted_centers)
                 ctx.running_loss += loss
                 loss.backward()
                 self._embedding_optim.step()
