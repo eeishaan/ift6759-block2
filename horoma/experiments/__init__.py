@@ -82,7 +82,8 @@ class HoromaExperiment(object):
             checkpoint = torch.load(self._embedding_file)
             self._embedding_model.load_state_dict(
                 checkpoint['model_state_dict'])
-            if 'optimizer_state_dict' in checkpoint \
+            if self._embedding_optim is not None and \
+                    'optimizer_state_dict' in checkpoint \
                     and hasattr(self, '_embedding_optim'):
                 self._embedding_optim.load_state_dict(
                     checkpoint['optimizer_state_dict'])
