@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 import torch
 import numpy as np
-from sklearn.cluster import KMeans, MiniBatchKMeans
+from sklearn.cluster import MiniBatchKMeans
 from sklearn.mixture import GaussianMixture
 from sklearn.utils.validation import check_is_fitted
 
@@ -194,7 +194,7 @@ class HoromaExperiment(object):
         # check if cluster is fitted
         try:
             check_is_fitted(self._cluster_obj, check_args)
-        except:
+        except Exception:
             # cluster is not fitted
             rel_fn = self._cluster_obj.fit_predict
         else:
