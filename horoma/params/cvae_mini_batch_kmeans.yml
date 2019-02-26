@@ -1,9 +1,8 @@
 optimizer_params:
   lr: 0.05
-optimizer: SGD
-optimizer_params:
   momentum: 0.9
   nesterov: True
+optimizer: SGD
 criterion: CVAE_LOSS
 cluster_params:
   n_clusters: 17
