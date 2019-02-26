@@ -48,7 +48,7 @@ class CVAEExperiment(HoromaExperiment):
                     getattr(self._cluster_obj, 'fit')
 
                 output_embedding = outputs[3]
-                numpy_data = output_embedding.cpu().numpy()
+                numpy_data = output_embedding.detach().cpu().numpy()
                 # fit the cluster
                 fit_fn(numpy_data)
 
