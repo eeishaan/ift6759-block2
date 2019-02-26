@@ -54,7 +54,7 @@ class HoromaExperiment(object):
             if ctx.batch == 0:
                 # refresh clustering at the start of each epoch
                 fit_fn = self._cluster_obj.fit
-            embedding = self._embedding_model(data)
+            embedding = self._embedding_model.embedding(data)
             fit_fn(embedding)
 
     def after_minibatch_test(self, ctx, outputs):
