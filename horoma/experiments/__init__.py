@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 
+from types import SimpleNamespace
+
 import torch
 import numpy as np
+from sklearn.cluster import KMeans, MiniBatchKMeans
+from sklearn.mixture import GaussianMixture
+from sklearn.utils.validation import check_is_fitted
+
 from horoma.cfg import DEVICE
-
-from types import SimpleNamespace
 from horoma.constants import TrainMode
-
 from horoma.utils.score import compute_metrics
 
 
@@ -44,8 +47,15 @@ class HoromaExperiment(object):
     def _remap(self, x):
         return self._cluster_label_mapping[x]
 
-    def after_forwardp(self, ctx, outputs, labels):
-        pass
+    def after_forwardp(self, ctx, outputs, data):
+        # code for mini batch kmeans
+        if isinstance(self._cluster_obj, MiniBatchKMeans):
+            fit_fn = self._cluster_obj.partial_fit
+            if ctx.batch == 0:
+                # refresh clustering at the start of each epoch
+                fit_fn = self._cluster_obj.fit
+            embedding = self._embedding_model(data)
+            fit_fn(embedding)
 
     def after_minibatch_test(self, ctx, outputs):
         # map them to correct labels
@@ -140,8 +150,8 @@ class HoromaExperiment(object):
             )
 
             self.before_train(ctx)
-            for _, data in enumerate(train_loader):
-
+            for batch, data in enumerate(train_loader):
+                ctx.batch = batch
                 data = data.to(DEVICE)
 
                 # before_forwardp can add second layer of transformation
@@ -175,8 +185,22 @@ class HoromaExperiment(object):
             embeddings.extend(data_embedding.tolist())
         true_labels = np.array(true_labels)
 
-        # fit the cluster
-        predicted_labels = self._cluster_obj.fit_predict(embeddings)
+        # conditionally fit the cluster
+        if isinstance(self._cluster_obj, GaussianMixture):
+            check_args = ['weights_', 'means_', 'precisions_cholesky_']
+        else:
+            check_args = 'cluster_centers_'
+
+        # check if cluster is fitted
+        try:
+            check_is_fitted(self._cluster_obj, check_args)
+        except:
+            # cluster is not fitted
+            rel_fn = self._cluster_obj.fit_predict
+        else:
+            # cluster is fitted, no need to fit, just predict
+            rel_fn = self._cluster_obj.predict
+        predicted_labels = rel_fn(embeddings)
         self._cluster_label_mapping = {}
 
         # get number of clusters for GMM or Kmeans
