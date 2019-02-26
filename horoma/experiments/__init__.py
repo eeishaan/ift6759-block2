@@ -36,6 +36,11 @@ class HoromaExperiment(object):
         # initialize epoch var correctly
         self._start_epoch = 0
 
+        # intialize a schedule for lr decay
+        self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+            self._embedding_optim) \
+            if self._embedding_optim is not None else None
+
     def _remap(self, x):
         return self._cluster_label_mapping[x]
 
@@ -62,7 +67,8 @@ class HoromaExperiment(object):
 
         # check cluster performance
         if ctx.valid_loader:
-            self._train_cluster(ctx.valid_loader, no_save=True)
+            v_acc = self._train_cluster(ctx.valid_loader, no_save=True)
+            self.lr_scheduler.step(v_acc)
 
     def before_forwardp(self, ctx, data):
         return data
@@ -198,6 +204,7 @@ class HoromaExperiment(object):
         acc, f1, ari = compute_metrics(true_labels, predicted_labels)
         print("Validation Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f}".format(
             acc, f1, ari))
+        return acc
 
     def train(self, train_loader, epochs,
               valid_loader=None, start_epoch=None, mode=TrainMode.TRAIN_ALL):
