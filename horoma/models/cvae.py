@@ -18,16 +18,19 @@ class CVAE(nn.Module):
         self.encoder = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=32,
                       kernel_size=4, stride=2),  # 15
+            nn.BatchNorm2d(32),
             nn.ReLU(),
-            # nn.Dropout(0.5),
+            nn.Dropout(0.5),
             nn.Conv2d(in_channels=32, out_channels=64,
                       kernel_size=4, stride=2),  # 6
+            nn.BatchNorm2d(64),
             nn.ReLU(),
-            # nn.Dropout(0.5),
+            nn.Dropout(0.5),
             nn.Conv2d(in_channels=64, out_channels=128,
                       kernel_size=4, stride=2),  # 2
+            nn.BatchNorm2d(128),
             nn.ReLU(),
-            # nn.Dropout(0.5),
+            nn.Dropout(0.5),
         )
         self.fc11 = nn.Linear(self.hidden_dim, self.latent_dim)
         self.fc12 = nn.Linear(self.hidden_dim, self.latent_dim)
@@ -35,12 +38,14 @@ class CVAE(nn.Module):
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(in_channels=128, out_channels=64,
                                kernel_size=4, stride=2),  # 6
+            nn.BatchNorm2d(64),
             nn.ReLU(),
-            # nn.Dropout(0.5),
+            nn.Dropout(0.5),
             nn.ConvTranspose2d(in_channels=64, out_channels=32,
                                kernel_size=5, stride=2),  # 15
+            nn.BatchNorm2d(32),
             nn.ReLU(),
-            # nn.Dropout(0.5),
+            nn.Dropout(0.5),
             nn.ConvTranspose2d(in_channels=32, out_channels=3,
                                kernel_size=4, stride=2),  # 32
             nn.Sigmoid(),
