@@ -23,4 +23,4 @@ class VAEExperiment(HoromaExperiment):
             cluster_error = _lambda * torch.norm(
                 output_embedding - predicted_clusters).pow(2)
             loss += cluster_error
-        return BCE + cluster_error
+        return loss
