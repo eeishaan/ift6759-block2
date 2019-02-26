@@ -11,10 +11,11 @@ class VAE(nn.Module):
     def __init__(self):
         super(VAE, self).__init__()
 
+        latent_dim = 2
         self.fc1 = nn.Linear(3072, 400)
-        self.fc21 = nn.Linear(400, 2)
-        self.fc22 = nn.Linear(400, 2)
-        self.fc3 = nn.Linear(2, 400)
+        self.fc21 = nn.Linear(400, latent_dim)
+        self.fc22 = nn.Linear(400, latent_dim)
+        self.fc3 = nn.Linear(latent_dim, 400)
         self.fc4 = nn.Linear(400, 3072)
 
     def encode(self, x):
@@ -33,9 +34,10 @@ class VAE(nn.Module):
     def forward(self, x):
         mu, logvar = self.encode(x.view(-1, 3072))
         z = self.reparameterize(mu, logvar)
-        return self.decode(z), mu, logvar
+        return self.decode(z), mu, logvar, z
 
     def embedding(self, x):
-        mu, logvar = self.encode(x.view(-1, 3072))
-        z = self.reparameterize(mu, logvar)
-        return z.detach().cpu().numpy()
+        with torch.no_grad():
+            mu, logvar = self.encode(x.view(-1, 3072))
+            z = self.reparameterize(mu, logvar)
+            return z.detach().cpu().numpy()
