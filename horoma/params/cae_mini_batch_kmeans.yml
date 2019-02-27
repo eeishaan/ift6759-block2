@@ -1,0 +1,8 @@
+optimizer_params:
+  lr: 0.0001
+optimizer: Adam
+criterion: VAE_LOSS
+cluster_params:
+  n_clusters: 17
+exp_file: cae_mini_batch_kmeans.pt
+epochs: 100
