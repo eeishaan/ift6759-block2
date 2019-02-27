@@ -4,7 +4,7 @@ from horoma.experiments.cvae import CVAEExperiment
 SUPPORTED_EXP = {
     'vae': HoromaExperiment,
     'cvae': CVAEExperiment,
-    'caes': HoromaExperiment
+    'caes': CAESExperiment
 }
 
 

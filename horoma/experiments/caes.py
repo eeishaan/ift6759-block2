@@ -10,7 +10,7 @@ from horoma.experiments import HoromaExperiment
 from horoma.utils.score import compute_metrics
 
 
-class CVAEExperiment(HoromaExperiment):
+class CAESExperiment(HoromaExperiment):
 
     def _train_embedding(self, train_loader, epochs, start_epoch, valid_loader):
         for epoch in range(start_epoch, epochs):
@@ -37,10 +37,10 @@ class CVAEExperiment(HoromaExperiment):
                 self._embedding_model.zero_grad()
 
                 outputs = self._embedding_model(data)
-                loss = self.compute_loss(ctx, outputs, data)
-                ctx.running_loss += loss
-                loss.backward()
-                self._embedding_optim.step()
+                #loss = self.compute_loss(ctx, outputs, data)
+                #ctx.running_loss += loss
+                #loss.backward()
+                #self._embedding_optim.step()
 
                 self.after_forwardp(ctx, outputs, data)
             self.after_train(ctx)
