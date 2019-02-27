@@ -64,7 +64,7 @@ def train_model(embedding_name, cluster_method_name, mode, params):
 
     # load data
     train_dataset = HoromaDataset(
-        split='train_overlapped', transform=transforms.ToTensor())
+        split='train', transform=transforms.ToTensor())
     valid_dataset = HoromaDataset(
         split='valid', transform=transforms.ToTensor())
     train_loader = DataLoader(train_dataset, batch_size=100, shuffle=True)
