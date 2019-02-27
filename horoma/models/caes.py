@@ -26,7 +26,7 @@ class CDAutoEncoder(nn.Module):
         )
 
         self.criterion = nn.MSELoss()
-        self.optimizer = torch.optim.SGD(self.parameters(), lr=0.1)
+        self.optimizer = torch.optim.Adam(self.parameters(), lr=0.1)
         self.current_loss = 0
 
     def forward(self, x):
@@ -34,8 +34,8 @@ class CDAutoEncoder(nn.Module):
         x = x.detach()
         # Add noise, but use the original lossless input as the target.
         x_noisy = x * (x.data.new(x.size()).normal_(0, 0.1) > -.1).type_as(x)
-        y = self.forward_pass(x_noisy)
         if self.training:
+            y = self.forward_pass(x_noisy)
             x_reconstruct = self.backward_pass(y)
             x.requires_grad = False
             loss = self.criterion(x_reconstruct, x)
@@ -43,7 +43,8 @@ class CDAutoEncoder(nn.Module):
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-            
+        else:
+            y = self.forward_pass(x)
         return y.detach()
 
     def reconstruct(self, x):
@@ -59,11 +60,11 @@ class CAES(nn.Module):
     def __init__(self):
         super(CAES, self).__init__()
 
-        self.ae1 = CDAutoEncoder(3, 16, 2)
-        self.ae2 = CDAutoEncoder(16, 32, 2)
-        self.ae3 = CDAutoEncoder(32, 64, 2)
-        self.ae4 = CDAutoEncoder(64, 32, 2)
-        self.ae5 = CDAutoEncoder(32, 32, 2)
+        self.ae1 = CDAutoEncoder(3, 32, 2)
+        self.ae2 = CDAutoEncoder(32, 64, 2)
+        self.ae3 = CDAutoEncoder(64, 128, 2)
+        self.ae4 = CDAutoEncoder(128, 64, 2)
+        self.ae5 = CDAutoEncoder(64, 32, 2)
 
     def forward(self, x):
         a1 = self.ae1(x)
