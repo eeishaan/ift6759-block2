@@ -33,7 +33,7 @@ class CDAutoEncoder(nn.Module):
         # Train each autoencoder individually
         x = x.detach()
         # Add noise, but use the original lossless input as the target.
-        x_noisy = x * (x.data.new(x.size().normal_(0, 0.1)) > -.1).type_as(x)
+        x_noisy = x * (x.data.new(x.size()).normal_(0, 0.1) > -.1).type_as(x)
         y = self.forward_pass(x_noisy)
         print(y.shape)
         if self.training:
