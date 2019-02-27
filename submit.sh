@@ -5,10 +5,10 @@
 #PBS -l feature=k80
 #PBS -l walltime=6:00:00    # Durée en secondes
 #PBS -l nodes=1:gpus=1  # Nombre de noeuds.
-#PBS -l advres=MILA2019
 # do not execute on login nodes
 module --force purge
 
+#XXXPBXXXS -l advres=MILA2019
 PATH=$PATH:/opt/software/singularity-3.0/bin/
 
 # set the working directory to where the job is launched
@@ -20,4 +20,4 @@ RAP=/rap/jvb-000-aa/COURS2019/etudiants/$USER
 
 mkdir -p $RAP 
 
-s_exec python3 -u -m horoma train --mode TRAIN_ALL --embedding cvae --cluster kmeans 
+s_exec python3 -u -m horoma train --mode TRAIN_ALL --embedding vae --cluster mini_batch_kmeans
