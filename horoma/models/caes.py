@@ -88,4 +88,5 @@ class CAES(nn.Module):
         self.eval()
         embedding, _ = self.forward(x)
         embedding = embedding.view(embedding.shape[0], -1)
+        self.train()
         return embedding.cpu().numpy()
