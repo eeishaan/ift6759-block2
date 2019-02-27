@@ -38,7 +38,7 @@ class CAESExperiment(HoromaExperiment):
 
                 outputs = self._embedding_model(data)
                 #loss = self.compute_loss(ctx, outputs, data)
-                #ctx.running_loss += loss
+                ctx.running_loss += self._embedding_model.get_loss()
                 #loss.backward()
                 #self._embedding_optim.step()
 

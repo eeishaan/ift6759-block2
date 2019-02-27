@@ -35,12 +35,11 @@ class CDAutoEncoder(nn.Module):
         # Add noise, but use the original lossless input as the target.
         x_noisy = x * (x.data.new(x.size()).normal_(0, 0.1) > -.1).type_as(x)
         y = self.forward_pass(x_noisy)
-        print(y.shape)
         if self.training:
             x_reconstruct = self.backward_pass(y)
             x.requires_grad = False
             loss = self.criterion(x_reconstruct, x)
-            self.current_loss = loss.item()
+            self.current_loss = loss
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -64,7 +63,7 @@ class CAES(nn.Module):
         self.ae2 = CDAutoEncoder(16, 32, 2)
         self.ae3 = CDAutoEncoder(32, 64, 2)
         self.ae4 = CDAutoEncoder(64, 32, 2)
-        self.ae5 = CDAutoEncoder(32, 16, 2)
+        self.ae5 = CDAutoEncoder(32, 32, 2)
 
     def forward(self, x):
         a1 = self.ae1(x)
@@ -89,3 +88,9 @@ class CAES(nn.Module):
     
     def get_loss(self):
         return self.ae1.current_loss + self.ae2.current_loss + self.ae3.current_loss + self.ae4.current_loss + self.ae5.current_loss
+
+    def embedding(self, x):
+        self.eval()
+        embedding, _ = self.forward(x)
+        embedding = embedding.view(embedding.shape[0], -1)
+        return embedding.cpu().numpy()
