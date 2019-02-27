@@ -62,33 +62,27 @@ class CAES(nn.Module):
 
         self.ae1 = CDAutoEncoder(3, 32, 2)
         self.ae2 = CDAutoEncoder(32, 64, 2)
-        self.ae3 = CDAutoEncoder(64, 128, 2)
-        self.ae4 = CDAutoEncoder(128, 64, 2)
-        self.ae5 = CDAutoEncoder(64, 32, 2)
+        self.ae3 = CDAutoEncoder(64, 16, 2)
 
     def forward(self, x):
         a1 = self.ae1(x)
         a2 = self.ae2(a1)
         a3 = self.ae3(a2)
-        a4 = self.ae4(a3)
-        a5 = self.ae5(a4)
 
         if self.training:
-            return a5
+            return a3
 
         else:
-            return a5, self.reconstruct(a5)
+            return a3, self.reconstruct(a3)
 
     def reconstruct(self, x):
-        a4_reconstruct = self.ae5.reconstruct(x)
-        a3_reconstruct = self.ae4.reconstruct(a4_reconstruct)
-        a2_reconstruct = self.ae3.reconstruct(a3_reconstruct)
+        a2_reconstruct = self.ae3.reconstruct(x)
         a1_reconstruct = self.ae2.reconstruct(a2_reconstruct)
         x_reconstruct = self.ae1.reconstruct(a1_reconstruct)
         return x_reconstruct
     
     def get_loss(self):
-        return self.ae1.current_loss + self.ae2.current_loss + self.ae3.current_loss + self.ae4.current_loss + self.ae5.current_loss
+        return self.ae1.current_loss + self.ae2.current_loss + self.ae3.current_loss
 
     def embedding(self, x):
         self.eval()
