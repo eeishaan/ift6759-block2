@@ -14,7 +14,7 @@ class VAEExperiment(HoromaExperiment):
         # cluster is fit after first backward pass
         if ctx.batch != 0:
             predicted_clusters = self._cluster_obj.predict(
-                output_embedding).reshape(-1)
+                output_embedding.detach().cpu().numpy()).reshape(-1)
             cluster_centers = self._cluster_obj.cluster_centers_
             predicted_centers = cluster_centers[predicted_clusters]
             predicted_centers = torch.Tensor(predicted_centers).to(DEVICE)
