@@ -71,16 +71,19 @@ def train_model(embedding_name, cluster_method_name, mode, params):
     valid_dataset = HoromaDataset(
         split='valid', transform=transforms.ToTensor())
 
+    # Split train dataset in two
     train_train_size = int(len(train_dataset) * 0.95)
     train_valid_size = len(train_dataset) - train_train_size
-    train_train_sampler = RandomSampler(train_train_size)
-    train_valid_sampler = RandomSampler(train_valid_size)
+    valid_train_dataset, valid_valid_dataset = random_split(train_dataset, [train_train_size, train_valid_size])
 
     train_train_loader = DataLoader(train_dataset, batch_size=100, sampler=train_train_sampler, shuffle=True)
     train_valid_loader = DataLoader(train_dataset, batch_size=100, smapler=train_valid_sampler, shuffle=True)
 
     # Split valid dataset in two
-    valid_train_dataset, valid_valid_dataset = random_split(valid_dataset, [int(len(valid_dataset) / 2), len(train_dataset) - int(len(valid_dataset) / 2)])
+    valid_train_size = int(len(valid_dataset) * 0.5)
+    valid_valid_size = len(valid_dataset) - train_train_size
+    valid_train_dataset, valid_valid_dataset = random_split(valid_dataset, [valid_train_size, valid_valid_size])
+
     valid_train_loader = DataLoader(valid_train_dataset, batch_size=100, shuffle=False)
     valid_valid_loader = DataLoader(valid_valid_dataset, batch_size=100, shuffle=False)
 
