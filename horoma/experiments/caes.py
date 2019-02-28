@@ -45,6 +45,3 @@ class CAESExperiment(HoromaExperiment):
 
                 self.after_forwardp(ctx, outputs, data)
             self.after_train(ctx)
-
-    def before_train(self, ctx):
-        print("Starting epoch {}".format(ctx.epoch))
