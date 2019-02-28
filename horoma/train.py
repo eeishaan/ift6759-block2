@@ -74,10 +74,10 @@ def train_model(embedding_name, cluster_method_name, mode, params):
     # Split train dataset in two
     train_train_size = int(len(train_dataset) * 0.95)
     train_valid_size = len(train_dataset) - train_train_size
-    valid_train_dataset, valid_valid_dataset = random_split(train_dataset, [train_train_size, train_valid_size])
+    train_train_dataset, train_valid_dataset = random_split(train_dataset, [train_train_size, train_valid_size])
 
-    train_train_loader = DataLoader(train_dataset, batch_size=100, sampler=train_train_sampler, shuffle=True)
-    train_valid_loader = DataLoader(train_dataset, batch_size=100, smapler=train_valid_sampler, shuffle=True)
+    train_train_loader = DataLoader(train_train_dataset, batch_size=100, shuffle=True)
+    train_valid_loader = DataLoader(train_valid_dataset, batch_size=100, shuffle=True)
 
     # Split valid dataset in two
     valid_train_size = int(len(valid_dataset) * 0.5)
