@@ -4,6 +4,7 @@ import os
 
 import yaml
 from torch.utils.data import DataLoader
+from torch.utils.data.sampler import RandomSampler
 from torchvision import transforms
 
 from horoma.constants import SAVED_MODEL_DIR, TrainMode
@@ -67,8 +68,31 @@ def train_model(embedding_name, cluster_method_name, mode, params):
         split='train', transform=transforms.ToTensor())
     valid_dataset = HoromaDataset(
         split='valid', transform=transforms.ToTensor())
+
+    #train_train_size = int(len(train_dataset) * 0.95)
+    #train_valid_size = len(train_dataset) - train_train_size
+    #train_train_sampler = RandomSampler(train_train_size)
+    #train_valid_sampler = RandomSampler(train_valid_size)
+
     train_loader = DataLoader(train_dataset, batch_size=100, shuffle=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=100, shuffle=False)
+
+
+
+
+    # Creating data indices for training and validation splits for valid set:
+    dataset_size = len(valid_dataset)
+    indices = list(range(dataset_size))
+    split = int(np.floor(0.5 * dataset_size))
+    np.random.shuffle(indices)
+    valid_train_indices, valid_valid_indices = indices[split:], indices[:split]
+
+    # Creating data samplers and loaders:
+    valid_train_sampler = SubsetRandomSampler(valid_train_indices)
+    valid_valid_sampler = SubsetRandomSampler(valid_valid_indices)
+    valid_train_loader = DataLoader(valid_dataset, batch_size=100, sampler=valid_train_sampler, shuffle=False)
+    valid_valid_loader = DataLoader(valid_dataset, batch_size=100, sampler=valid_valid_sampler, shuffle=False)
+
+    #valid_loader = DataLoader(valid_dataset, batch_size=100, shuffle=False)
     # get embedding model
     embedding_model = embedding_factory(
         embedding_name, params.get('embedding_params', {}))
@@ -96,7 +120,7 @@ def train_model(embedding_name, cluster_method_name, mode, params):
 
     # get experiment object
     experiment = experiment_factory(embedding_name, experiment_params)
-    experiment.train(train_loader, params['epochs'], valid_loader, mode=mode)
+    experiment.train(train_loader, params['epochs'], valid_train_loader, valid_valid_loader, mode=mode)
 
 
 def train(args):
