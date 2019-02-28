@@ -81,7 +81,6 @@ class HoromaExperiment(object):
             self.lr_scheduler.step(v_acc)
 
     def before_forwardp(self, ctx, data):
-        #print("Running batch {}".format(ctx.batch))
         return data
 
     def before_test(self, ctx):
@@ -89,6 +88,7 @@ class HoromaExperiment(object):
 
     def before_train(self, ctx):
         print("Starting epoch {}".format(ctx.epoch))
+        
     def compute_loss(self, ctx, outputs, labels):
         loss = self._embedding_crit(outputs, labels)
         return loss

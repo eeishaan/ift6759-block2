@@ -5,9 +5,7 @@ import os
 import yaml
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
-from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import transforms
-import numpy as np
 
 from horoma.constants import SAVED_MODEL_DIR, TrainMode
 from horoma.experiments.factory import experiment_factory
@@ -87,7 +85,6 @@ def train_model(embedding_name, cluster_method_name, mode, params):
     valid_train_loader = DataLoader(valid_train_dataset, batch_size=100, shuffle=False)
     valid_valid_loader = DataLoader(valid_valid_dataset, batch_size=100, shuffle=False)
 
-    #valid_loader = DataLoader(valid_dataset, batch_size=100, shuffle=False)
     # get embedding model
     embedding_model = embedding_factory(
         embedding_name, params.get('embedding_params', {}))

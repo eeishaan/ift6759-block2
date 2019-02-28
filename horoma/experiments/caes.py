@@ -1,13 +1,7 @@
 from types import SimpleNamespace
 
-import numpy as np
-import torch
-import torch.nn.functional as F
-
 from horoma.cfg import DEVICE
-from horoma.constants import TrainMode
 from horoma.experiments import HoromaExperiment
-from horoma.utils.score import compute_metrics
 
 
 class CAESExperiment(HoromaExperiment):
@@ -38,10 +32,7 @@ class CAESExperiment(HoromaExperiment):
                 self._embedding_model.zero_grad()
 
                 outputs = self._embedding_model(data)
-                #loss = self.compute_loss(ctx, outputs, data)
                 ctx.running_loss += self._embedding_model.get_loss()
-                #loss.backward()
-                #self._embedding_optim.step()
 
                 self.after_forwardp(ctx, outputs, data)
             self.after_train(ctx)
