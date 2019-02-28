@@ -81,6 +81,7 @@ class HoromaExperiment(object):
             self.lr_scheduler.step(v_acc)
 
     def before_forwardp(self, ctx, data):
+        print("Running batch {}".format(ctx.batch))
         return data
 
     def before_test(self, ctx):
