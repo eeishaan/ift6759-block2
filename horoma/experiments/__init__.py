@@ -88,8 +88,7 @@ class HoromaExperiment(object):
         ctx.predictions = []
 
     def before_train(self, ctx):
-        pass
-
+        print("Starting epoch {}".format(ctx.epoch))
     def compute_loss(self, ctx, outputs, labels):
         loss = self._embedding_crit(outputs, labels)
         return loss
@@ -139,8 +138,6 @@ class HoromaExperiment(object):
 
     def _train_embedding(self, train_loader, epochs, start_epoch, valid_train_loader, valid_valid_loader):
         for epoch in range(start_epoch, epochs):
-            print("Start embedding training epoch {}".format(epoch))
-
             # first train embedding model
             self._embedding_model.train()
 

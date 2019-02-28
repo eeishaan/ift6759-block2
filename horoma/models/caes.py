@@ -40,7 +40,7 @@ class CDAutoEncoder(nn.Module):
             x_reconstruct = self.backward_pass(y)
             x.requires_grad = False
             loss = self.criterion(x_reconstruct, x)
-            self.current_loss = loss.item()
+            self.current_loss = loss
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -92,7 +92,7 @@ class CAES(nn.Module):
     
     def embedding(self, x):
         self.eval()
-        with torch.no_grad:
+        with torch.no_grad():
             embedding, _ = self.forward(x)
             embedding = embedding.view(embedding.shape[0], -1)
         self.train()
