@@ -81,7 +81,7 @@ class HoromaExperiment(object):
             self.lr_scheduler.step(v_acc)
 
     def before_forwardp(self, ctx, data):
-        print("Running batch {}".format(ctx.batch))
+        #print("Running batch {}".format(ctx.batch))
         return data
 
     def before_test(self, ctx):
@@ -147,6 +147,7 @@ class HoromaExperiment(object):
             # prepare context for hooks
             ctx = SimpleNamespace(
                 epoch=epoch,
+                batch=0,
                 running_loss=0,
                 valid_train_loader=valid_train_loader,
                 valid_valid_loader=valid_valid_loader

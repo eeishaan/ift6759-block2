@@ -4,8 +4,9 @@ import os
 
 import yaml
 from torch.utils.data import DataLoader
-from torch.utils.data.sampler import RandomSampler
+from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import transforms
+import numpy as np
 
 from horoma.constants import SAVED_MODEL_DIR, TrainMode
 from horoma.experiments.factory import experiment_factory

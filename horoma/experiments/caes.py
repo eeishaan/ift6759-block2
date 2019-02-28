@@ -27,8 +27,8 @@ class CAESExperiment(HoromaExperiment):
             )
 
             self.before_train(ctx)
-            for _, data in enumerate(train_loader):
-
+            for batch, data in enumerate(train_loader):
+                ctx.batch = batch
                 data = data.to(DEVICE)
 
                 # before_forwardp can add second layer of transformation
