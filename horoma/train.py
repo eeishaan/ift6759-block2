@@ -4,6 +4,7 @@ import os
 
 import yaml
 from torch.utils.data import DataLoader
+from torch.utils.data import random_split
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import transforms
 import numpy as np
@@ -70,28 +71,18 @@ def train_model(embedding_name, cluster_method_name, mode, params):
     valid_dataset = HoromaDataset(
         split='valid', transform=transforms.ToTensor())
 
-    #train_train_size = int(len(train_dataset) * 0.95)
-    #train_valid_size = len(train_dataset) - train_train_size
-    #train_train_sampler = RandomSampler(train_train_size)
-    #train_valid_sampler = RandomSampler(train_valid_size)
+    train_train_size = int(len(train_dataset) * 0.95)
+    train_valid_size = len(train_dataset) - train_train_size
+    train_train_sampler = RandomSampler(train_train_size)
+    train_valid_sampler = RandomSampler(train_valid_size)
 
-    train_loader = DataLoader(train_dataset, batch_size=100, shuffle=True)
+    train_train_loader = DataLoader(train_dataset, batch_size=100, sampler=train_train_sampler, shuffle=True)
+    train_valid_loader = DataLoader(train_dataset, batch_size=100, smapler=train_valid_sampler, shuffle=True)
 
-
-
-
-    # Creating data indices for training and validation splits for valid set:
-    dataset_size = len(valid_dataset)
-    indices = list(range(dataset_size))
-    split = int(np.floor(0.5 * dataset_size))
-    np.random.shuffle(indices)
-    valid_train_indices, valid_valid_indices = indices[split:], indices[:split]
-
-    # Creating data samplers and loaders:
-    valid_train_sampler = SubsetRandomSampler(valid_train_indices)
-    valid_valid_sampler = SubsetRandomSampler(valid_valid_indices)
-    valid_train_loader = DataLoader(valid_dataset, batch_size=100, sampler=valid_train_sampler, shuffle=False)
-    valid_valid_loader = DataLoader(valid_dataset, batch_size=100, sampler=valid_valid_sampler, shuffle=False)
+    # Split valid dataset in two
+    valid_train_dataset, valid_valid_dataset = random_split(valid_dataset, [int(len(valid_dataset) / 2), len(train_dataset) - int(len(valid_dataset) / 2)])
+    valid_train_loader = DataLoader(valid_train_dataset, batch_size=100, shuffle=False)
+    valid_valid_loader = DataLoader(valid_valid_dataset, batch_size=100, shuffle=False)
 
     #valid_loader = DataLoader(valid_dataset, batch_size=100, shuffle=False)
     # get embedding model
@@ -121,7 +112,7 @@ def train_model(embedding_name, cluster_method_name, mode, params):
 
     # get experiment object
     experiment = experiment_factory(embedding_name, experiment_params)
-    experiment.train(train_loader, params['epochs'], valid_train_loader, valid_valid_loader, mode=mode)
+    experiment.train(train_train_loader, train_valid_loader, params['epochs'], valid_train_loader, valid_valid_loader, mode=mode)
 
 
 def train(args):

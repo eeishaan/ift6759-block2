@@ -12,7 +12,7 @@ from horoma.utils.score import compute_metrics
 
 class CAESExperiment(HoromaExperiment):
 
-    def _train_embedding(self, train_loader, epochs, start_epoch, valid_train_loader, valid_valid_loader):
+    def _train_embedding(self, train_train_loader, train_valid_loader, epochs, start_epoch, valid_train_loader, valid_valid_loader):
         for epoch in range(start_epoch, epochs):
 
             # first train embedding model
@@ -27,7 +27,7 @@ class CAESExperiment(HoromaExperiment):
             )
 
             self.before_train(ctx)
-            for batch, data in enumerate(train_loader):
+            for batch, data in enumerate(train_train_loader):
                 ctx.batch = batch
                 data = data.to(DEVICE)
 

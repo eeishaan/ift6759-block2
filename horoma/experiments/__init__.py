@@ -136,7 +136,7 @@ class HoromaExperiment(object):
                 self.after_minibatch_test(ctx, predictions)
         return self.after_test(ctx)
 
-    def _train_embedding(self, train_loader, epochs, start_epoch, valid_train_loader, valid_valid_loader):
+    def _train_embedding(self, train_train_loader, train_valid_loader, epochs, start_epoch, valid_train_loader, valid_valid_loader):
         for epoch in range(start_epoch, epochs):
             # first train embedding model
             self._embedding_model.train()
@@ -151,7 +151,7 @@ class HoromaExperiment(object):
             )
 
             self.before_train(ctx)
-            for batch, data in enumerate(train_loader):
+            for batch, data in enumerate(train_train_loader):
                 ctx.batch = batch
                 data = data.to(DEVICE)
 
@@ -170,7 +170,7 @@ class HoromaExperiment(object):
                 self.after_forwardp(ctx, outputs, data)
 
             # Divide the loss by the number of batches
-            ctx.running_loss /= len(train_loader)
+            ctx.running_loss /= len(train_train_loader)
             self.after_train(ctx)
 
     def _train_cluster(self, valid_train_loader, valid_valid_loader, no_save=False):
@@ -231,7 +231,7 @@ class HoromaExperiment(object):
             acc, f1, ari))
         return acc
 
-    def train(self, train_loader, epochs,
+    def train(self, train_train_loader, train_valid_loader, epochs,
               valid_train_loader=None, valid_valid_loader=None, 
               start_epoch=None, mode=TrainMode.TRAIN_ALL):
         # set start_epoch differently if you want to resume training from a
@@ -243,7 +243,7 @@ class HoromaExperiment(object):
         if mode == TrainMode.TRAIN_ONLY_CLUSTER:
             self.load_experiment(load_embedding=True, load_cluster=False)
         else:
-            self._train_embedding(train_loader, epochs,
+            self._train_embedding(train_train_loader, train_valid_loader, epochs,
                                   start_epoch, valid_train_loader,
                                   valid_valid_loader)
 
