@@ -5,12 +5,13 @@ import torch
 from torch.utils.data import Dataset
 
 from horoma.constants import DATA_ROOT_FOLDER
-
+from horoma.utils.augmentation import get_augmented_dataset
 
 class HoromaDataset(Dataset):
 
     def __init__(self, data_dir=DATA_ROOT_FOLDER, split="train",
-                 subset=None, skip=0, flattened=False, transform=None):
+                 subset=None, skip=0, flattened=False, transform=None,
+                 augment=False):
         """
         Args:
             data_dir: Path to the directory containing the samples.
@@ -59,6 +60,8 @@ class HoromaDataset(Dataset):
 
         self.data = np.memmap(filename_x, dtype=datatype, mode="r", shape=(
             self.nb_exemples, height, width, nb_channels))
+        if augment:
+            self.data = get_augmented_dataset(self.data)
         if subset is None:
             self.data = self.data[skip: None]
         else:

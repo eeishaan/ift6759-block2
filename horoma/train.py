@@ -65,9 +65,9 @@ def train_model(embedding_name, cluster_method_name, mode, params):
 
     # load data
     train_dataset = HoromaDataset(
-        split='train', transform=transforms.ToTensor())
+        split='train', transform=transforms.ToTensor(), augment=True)
     valid_dataset = HoromaDataset(
-        split='valid', transform=transforms.ToTensor())
+        split='valid', transform=transforms.ToTensor(), augment=True)
 
     # Split train dataset in two
     train_train_size = int(len(train_dataset) * 0.95)
