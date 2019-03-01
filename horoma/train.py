@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 import argparse
 import os
+from copy import deepcopy
 
+import PIL
+import torch
 import yaml
-from torch.utils.data import DataLoader
-from torch.utils.data import random_split
+from sklearn.model_selection import train_test_split
+from sklearn.utils import resample
+from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 
 from horoma.constants import SAVED_MODEL_DIR, TrainMode
@@ -63,27 +67,67 @@ def get_train_parser(parent=None):
 def train_model(embedding_name, cluster_method_name, mode, params):
     mode = TrainMode[mode]
 
+    tranformer_pipeline = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.RandomRotation(30, resample=PIL.Image.NEAREST),
+        transforms.RandomHorizontalFlip(),
+        transforms.ColorJitter(),
+        transforms.ToTensor()
+    ])
     # load data
     train_dataset = HoromaDataset(
-        split='train', transform=transforms.ToTensor())
+        split='train', transform=tranformer_pipeline)
     valid_dataset = HoromaDataset(
-        split='valid', transform=transforms.ToTensor())
+        split='valid')
 
     # Split train dataset in two
     train_train_size = int(len(train_dataset) * 0.95)
     train_valid_size = len(train_dataset) - train_train_size
-    train_train_dataset, train_valid_dataset = random_split(train_dataset, [train_train_size, train_valid_size])
+    train_train_dataset, train_valid_dataset = random_split(
+        train_dataset, [train_train_size, train_valid_size])
 
-    train_train_loader = DataLoader(train_train_dataset, batch_size=100, shuffle=True)
-    train_valid_loader = DataLoader(train_valid_dataset, batch_size=100, shuffle=True)
+    train_train_loader = DataLoader(
+        train_train_dataset, batch_size=100, shuffle=True)
+    train_valid_loader = DataLoader(
+        train_valid_dataset, batch_size=100, shuffle=True)
 
-    # Split valid dataset in two
-    valid_train_size = int(len(valid_dataset) * 0.5)
-    valid_valid_size = len(valid_dataset) - valid_train_size
-    valid_train_dataset, valid_valid_dataset = random_split(valid_dataset, [valid_train_size, valid_valid_size])
+    per_class_data = {}
+    for data, label in valid_dataset:
+        label = int(label)
+        if label not in per_class_data:
+            per_class_data[label] = []
+        per_class_data[label].append(data)
 
-    valid_train_loader = DataLoader(valid_train_dataset, batch_size=100, shuffle=False)
-    valid_valid_loader = DataLoader(valid_valid_dataset, batch_size=100, shuffle=False)
+    # manufacture more data
+    max_data_per_class = 100
+    augmented_data = {}
+    for class_label, class_data in per_class_data.items():
+        data_len = len(class_data)
+        if data_len >= max_data_per_class:
+            augmented_data[class_label] = resample(
+                class_data, replace=False, n_samples=max_data_per_class)
+            continue
+        augmented_data[class_label] = deepcopy(class_data)
+        num_loops = int(max_data_per_class/data_len) + 1
+        for _ in range(num_loops):
+            augmented_data[class_label].extend(
+                map(tranformer_pipeline, class_data))
+
+    valid_split = 0.5
+    valid_dataset = {label: train_test_split(
+        data, test_size=valid_split) for label, data in augmented_data.items()}
+
+    valid_valid_dataset = []
+    valid_train_dataset = []
+    for label, data in valid_dataset.items():
+        valid_train_dataset.extend(
+            zip(data[0], torch.Tensor(len(data[0])*[label])))
+        valid_valid_dataset.extend(
+            zip(data[1], torch.Tensor(len(data[0])*[label])))
+    valid_train_loader = DataLoader(
+        valid_train_dataset, batch_size=100, shuffle=False)
+    valid_valid_loader = DataLoader(
+        valid_valid_dataset, batch_size=100, shuffle=False)
 
     # get embedding model
     embedding_model = embedding_factory(
@@ -112,7 +156,8 @@ def train_model(embedding_name, cluster_method_name, mode, params):
 
     # get experiment object
     experiment = experiment_factory(embedding_name, experiment_params)
-    experiment.train(train_train_loader, train_valid_loader, params['epochs'], valid_train_loader, valid_valid_loader, mode=mode)
+    experiment.train(train_train_loader, train_valid_loader,
+                     params['epochs'], valid_train_loader, valid_valid_loader, mode=mode)
 
 
 def train(args):
