@@ -73,7 +73,6 @@ def train_model(embedding_name, cluster_method_name, mode, params):
         transforms.RandomHorizontalFlip(),
         transforms.ColorJitter(),
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
     # load data
     train_dataset = HoromaDataset(
