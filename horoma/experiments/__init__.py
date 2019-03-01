@@ -70,7 +70,8 @@ class HoromaExperiment(object):
 
         # check cluster performance
         if ctx.valid_valid_loader and ctx.valid_train_loader:
-            v_acc = self._train_cluster(ctx.valid_train_loader, ctx.valid_valid_loader, no_save=True)
+            v_acc = self._train_cluster(
+                ctx.valid_train_loader, ctx.valid_valid_loader, no_save=True)
             self.lr_scheduler.step(v_acc)
 
     def before_backprop(self, ctx, outputs, data):
@@ -91,7 +92,7 @@ class HoromaExperiment(object):
 
     def before_train(self, ctx):
         print("Starting epoch {}".format(ctx.epoch))
-        
+
     def compute_loss(self, ctx, outputs, labels):
         loss = self._embedding_crit(outputs, labels)
         return loss
@@ -236,7 +237,7 @@ class HoromaExperiment(object):
         return acc
 
     def train(self, train_train_loader, train_valid_loader, epochs,
-              valid_train_loader=None, valid_valid_loader=None, 
+              valid_train_loader=None, valid_valid_loader=None,
               start_epoch=None, mode=TrainMode.TRAIN_ALL):
         # set start_epoch differently if you want to resume training from a
         # checkpoint.
