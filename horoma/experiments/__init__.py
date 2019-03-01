@@ -68,21 +68,8 @@ class HoromaExperiment(object):
             ctx.epoch, ctx.running_loss.item())
         print(message)
 
-        # check cluster performance
-        if ctx.valid_valid_loader and ctx.valid_train_loader:
-            v_acc = self._train_cluster(
-                ctx.valid_train_loader, ctx.valid_valid_loader, no_save=True)
-            self.lr_scheduler.step(v_acc)
-
     def before_backprop(self, ctx, outputs, data):
-        # code for fitting mini batch kmeans
-        if isinstance(self._cluster_obj, MiniBatchKMeans):
-            fit_fn = self._cluster_obj.partial_fit
-            if ctx.batch == 0:
-                # refresh clustering at the start of each epoch
-                fit_fn = self._cluster_obj.fit
-            embedding = self._embedding_model.embedding(data)
-            fit_fn(embedding)
+        pass
 
     def before_forwardp(self, ctx, data):
         return data
@@ -90,8 +77,13 @@ class HoromaExperiment(object):
     def before_test(self, ctx):
         ctx.predictions = []
 
-    def before_train(self, ctx):
+    def before_train(self, ctx, train_train_loader):
         print("Starting epoch {}".format(ctx.epoch))
+
+        # train cluster on learnt or random embedding
+        v_f1 = self._cluster_obj(train_train_loader,
+                                 ctx.valid_train_loader, ctx.valid_valid_loader)
+        self.lr_scheduler.step(v_f1)
 
     def compute_loss(self, ctx, outputs, labels):
         loss = self._embedding_crit(outputs, labels)
@@ -157,10 +149,10 @@ class HoromaExperiment(object):
                 batch=0,
                 running_loss=0,
                 valid_train_loader=valid_train_loader,
-                valid_valid_loader=valid_valid_loader
+                valid_valid_loader=valid_valid_loader,
             )
 
-            self.before_train(ctx)
+            self.before_train(ctx, train_train_loader)
             for batch, data in enumerate(train_train_loader):
                 ctx.batch = batch
                 data = data.to(DEVICE)
@@ -184,35 +176,39 @@ class HoromaExperiment(object):
             ctx.running_loss /= len(train_train_loader)
             self.after_train(ctx)
 
-    def _train_cluster(self, valid_train_loader, valid_valid_loader, no_save=False):
+    def _train_cluster(self,
+                       train_train_loader,
+                       valid_train_loader,
+                       valid_valid_loader,
+                       no_save=False):
+        '''
+        Train cluster and evaluate performance metrics on validation data
+        '''
+        # fit the cluster on train_data
+        embeddings = []
+        self._embedding_model.eval()
+        with torch.no_grad():
+            for data in train_train_loader:
+                data = data.to(DEVICE)
+                data_embedding = self._embedding_model.embedding(data)
+                embeddings.extend(data_embedding.tolist())
+        self._cluster_obj.fit(embeddings)
+
+        # learn the cluster labels using valid_train data
 
         # get validation data embedding
         true_labels = []
         embeddings = []
         self._embedding_model.eval()
-        for data, labels in valid_train_loader:
-            data = data.to(DEVICE)
-            true_labels.extend(labels.int().view(-1).tolist())
-            data_embedding = self._embedding_model.embedding(data)
-            embeddings.extend(data_embedding.tolist())
+        with torch.no_grad():
+            for data, labels in valid_train_loader:
+                data = data.to(DEVICE)
+                true_labels.extend(labels.int().view(-1).tolist())
+                data_embedding = self._embedding_model.embedding(data)
+                embeddings.extend(data_embedding.tolist())
         true_labels = np.array(true_labels)
 
-        # conditionally fit the cluster
-        if isinstance(self._cluster_obj, GaussianMixture):
-            check_args = ['weights_', 'means_', 'precisions_cholesky_']
-        else:
-            check_args = 'cluster_centers_'
-
-        # check if cluster is fitted
-        try:
-            check_is_fitted(self._cluster_obj, check_args)
-        except Exception:
-            # cluster is not fitted
-            rel_fn = self._cluster_obj.fit_predict
-        else:
-            # cluster is fitted, no need to fit, just predict
-            rel_fn = self._cluster_obj.predict
-        predicted_labels = rel_fn(embeddings)
+        predicted_labels = self._cluster_obj.predict(embeddings)
         self._cluster_label_mapping = {}
 
         # get number of clusters for GMM or Kmeans
@@ -233,14 +229,34 @@ class HoromaExperiment(object):
                 # No validation point found on this cluster. We can't label it.
                 self._cluster_label_mapping[i] = -1
 
+        # coditionally save the model
         if not no_save:
             self.save_experiment(None, save_embedding=False)
 
+        # evaluate cluster on valid_train set
         predicted_labels = [self._remap(x) for x in predicted_labels]
         acc, f1, ari = compute_metrics(true_labels, predicted_labels)
-        print("Validation Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f}".format(
+        print("Validation Train Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f}".format(
             acc, f1, ari))
-        return acc
+
+        # evaluate performance on valid_valid set
+        true_labels = []
+        embeddings = []
+        self._embedding_model.eval()
+        with torch.no_grad():
+            for data, labels in valid_valid_loader:
+                data = data.to(DEVICE)
+                true_labels.extend(labels.int().view(-1).tolist())
+                data_embedding = self._embedding_model.embedding(data)
+                embeddings.extend(data_embedding.tolist())
+        true_labels = np.array(true_labels)
+        predicted_labels = [self._remap(x) for x in predicted_labels]
+        acc, f1, ari = compute_metrics(true_labels, predicted_labels)
+        print("Validation Valid Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f}".format(
+            acc, f1, ari))
+
+        # return f1 for LR decay
+        return f1
 
     def train(self, train_train_loader, train_valid_loader, epochs,
               valid_train_loader=None, valid_valid_loader=None,
@@ -266,4 +282,5 @@ class HoromaExperiment(object):
             print(err)
             return
 
-        self._train_cluster(valid_train_loader, valid_valid_loader)
+        self._train_cluster(train_train_loader,
+                            valid_train_loader, valid_valid_loader)
