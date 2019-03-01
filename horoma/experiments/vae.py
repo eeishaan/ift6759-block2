@@ -14,6 +14,7 @@ class VAEExperiment(HoromaExperiment):
     def before_forwardp(self, ctx, data):
         ctx.bce = 0
         ctx.cluster_error = 0
+        return data
 
     def compute_loss(self, ctx, outputs, x):
         recon_x, mu, logvar, output_embedding = outputs
