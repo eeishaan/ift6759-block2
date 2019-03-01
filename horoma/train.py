@@ -68,10 +68,11 @@ def train_model(embedding_name, cluster_method_name, mode, params):
     mode = TrainMode[mode]
 
     tranformer_pipeline = transforms.Compose([
+        transforms.ToTensor(),
         transforms.ToPILImage(),
         transforms.RandomRotation(30, resample=PIL.Image.NEAREST),
         transforms.RandomHorizontalFlip(),
-        transforms.ColorJitter(),
+        transforms.ColorJitter(hue=0.3),
         transforms.ToTensor(),
     ])
     # load data
