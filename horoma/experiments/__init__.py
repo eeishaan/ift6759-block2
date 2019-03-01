@@ -247,6 +247,7 @@ class HoromaExperiment(object):
                 data_embedding = self._embedding_model.embedding(data)
                 embeddings.extend(data_embedding.tolist())
         true_labels = np.array(true_labels)
+        predicted_labels = self._cluster_obj.predict(embeddings)
         predicted_labels = [self._remap(x) for x in predicted_labels]
         acc, f1, ari = compute_metrics(true_labels, predicted_labels)
         print("Validation Valid Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f}".format(
