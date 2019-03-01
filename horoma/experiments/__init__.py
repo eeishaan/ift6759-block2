@@ -48,14 +48,7 @@ class HoromaExperiment(object):
         return self._cluster_label_mapping[x]
 
     def after_forwardp(self, ctx, outputs, data):
-        # code for mini batch kmeans
-        if isinstance(self._cluster_obj, MiniBatchKMeans):
-            fit_fn = self._cluster_obj.partial_fit
-            if ctx.batch == 0:
-                # refresh clustering at the start of each epoch
-                fit_fn = self._cluster_obj.fit
-            embedding = self._embedding_model.embedding(data)
-            fit_fn(embedding)
+        pass
 
     def after_minibatch_test(self, ctx, outputs):
         # map them to correct labels
@@ -79,6 +72,16 @@ class HoromaExperiment(object):
         if ctx.valid_loader:
             v_acc = self._train_cluster(ctx.valid_loader, no_save=True)
             self.lr_scheduler.step(v_acc)
+
+    def before_backprop(self, ctx, outputs, data):
+        # code for fitting mini batch kmeans
+        if isinstance(self._cluster_obj, MiniBatchKMeans):
+            fit_fn = self._cluster_obj.partial_fit
+            if ctx.batch == 0:
+                # refresh clustering at the start of each epoch
+                fit_fn = self._cluster_obj.fit
+            embedding = self._embedding_model.embedding(data)
+            fit_fn(embedding)
 
     def before_forwardp(self, ctx, data):
         return data
@@ -161,6 +164,7 @@ class HoromaExperiment(object):
                 self._embedding_model.zero_grad()
 
                 outputs = self._embedding_model(data)
+                self.before_backprop(ctx, outputs, data)
                 loss = self.compute_loss(ctx, outputs, data)
                 ctx.running_loss += loss
                 loss.backward()
