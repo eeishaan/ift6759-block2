@@ -108,7 +108,7 @@ def train_model(embedding_name, cluster_method_name, mode, params):
                 class_data, replace=False, n_samples=max_data_per_class)
             continue
         augmented_data[class_label] = deepcopy(class_data)
-        num_loops = int(max_data_per_class/data_len) + 1
+        num_loops = int(max_data_per_class / data_len) + 1
         for _ in range(num_loops):
             augmented_data[class_label].extend(
                 map(tranformer_pipeline, class_data))
@@ -121,9 +121,9 @@ def train_model(embedding_name, cluster_method_name, mode, params):
     valid_train_dataset = []
     for label, data in valid_dataset.items():
         valid_train_dataset.extend(
-            zip(data[0], torch.Tensor(len(data[0])*[label])))
+            zip(data[0], torch.Tensor(len(data[0]) * [label])))
         valid_valid_dataset.extend(
-            zip(data[1], torch.Tensor(len(data[0])*[label])))
+            zip(data[1], torch.Tensor(len(data[0]) * [label])))
     valid_train_loader = DataLoader(
         valid_train_dataset, batch_size=100, shuffle=False)
     valid_valid_loader = DataLoader(
