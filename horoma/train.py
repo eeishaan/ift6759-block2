@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
 import argparse
 import os
-from copy import deepcopy
 
 import PIL
 import torch
 import yaml
 from sklearn.model_selection import train_test_split
-from sklearn.utils import resample
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
 

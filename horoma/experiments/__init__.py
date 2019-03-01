@@ -4,9 +4,6 @@ from types import SimpleNamespace
 
 import torch
 import numpy as np
-from sklearn.cluster import MiniBatchKMeans
-from sklearn.mixture import GaussianMixture
-from sklearn.utils.validation import check_is_fitted
 
 from horoma.cfg import DEVICE
 from horoma.constants import TrainMode
