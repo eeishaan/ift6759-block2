@@ -29,7 +29,7 @@ class VAEExperiment(HoromaExperiment):
         predicted_centers = cluster_centers[predicted_clusters]
         predicted_centers = torch.Tensor(predicted_centers).to(DEVICE)
 
-        _lambda = 0.05
+        _lambda = 50000
         cluster_error = _lambda * torch.norm(
             output_embedding - predicted_centers).pow(2)
         loss += cluster_error
