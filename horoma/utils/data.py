@@ -71,6 +71,9 @@ class HoromaDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, index):
+        data = self.data[index]
+        if self.transform:
+            data = self.transform(data)
         if self.targets is not None:
-            return self.transform(self.data[index]), torch.Tensor([self.targets[index]])
-        return self.transform(self.data[index])
+            return data, torch.Tensor([self.targets[index]])
+        return data
