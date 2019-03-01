@@ -9,7 +9,6 @@ class CAESExperiment(HoromaExperiment):
     def _train_embedding(self, train_train_loader, train_valid_loader, epochs, start_epoch, valid_train_loader, valid_valid_loader):
         for epoch in range(start_epoch, epochs):
 
-            # first train embedding model
             self._embedding_model.train()
 
             # prepare context for hooks
