@@ -72,7 +72,8 @@ def train_model(embedding_name, cluster_method_name, mode, params):
         transforms.RandomRotation(30, resample=PIL.Image.NEAREST),
         transforms.RandomHorizontalFlip(),
         transforms.ColorJitter(),
-        transforms.ToTensor()
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
     # load data
     train_dataset = HoromaDataset(
@@ -103,11 +104,7 @@ def train_model(embedding_name, cluster_method_name, mode, params):
     augmented_data = {}
     for class_label, class_data in per_class_data.items():
         data_len = len(class_data)
-        if data_len >= max_data_per_class:
-            augmented_data[class_label] = resample(
-                class_data, replace=False, n_samples=max_data_per_class)
-            continue
-        augmented_data[class_label] = deepcopy(class_data)
+        augmented_data[class_label] = []
         num_loops = int(max_data_per_class / data_len) + 1
         for _ in range(num_loops):
             augmented_data[class_label].extend(
@@ -123,7 +120,8 @@ def train_model(embedding_name, cluster_method_name, mode, params):
         valid_train_dataset.extend(
             zip(data[0], torch.Tensor(len(data[0]) * [label])))
         valid_valid_dataset.extend(
-            zip(data[1], torch.Tensor(len(data[0]) * [label])))
+            zip(data[1], torch.Tensor(len(data[1]) * [label])))
+
     valid_train_loader = DataLoader(
         valid_train_dataset, batch_size=100, shuffle=False)
     valid_valid_loader = DataLoader(
