@@ -78,8 +78,8 @@ class HoromaExperiment(object):
         print("Starting epoch {}".format(ctx.epoch))
 
         # train cluster on learnt or random embedding
-        v_f1 = self._cluster_obj(train_train_loader,
-                                 ctx.valid_train_loader, ctx.valid_valid_loader)
+        v_f1 = self._train_cluster(train_train_loader,
+                                   ctx.valid_train_loader, ctx.valid_valid_loader)
         self.lr_scheduler.step(v_f1)
 
     def compute_loss(self, ctx, outputs, labels):
