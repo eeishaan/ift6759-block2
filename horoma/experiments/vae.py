@@ -6,6 +6,15 @@ from horoma.experiments import HoromaExperiment
 
 
 class VAEExperiment(HoromaExperiment):
+    def after_train(self, ctx):
+        super().after_train(ctx)
+        print("BCE loss: {} Cluster loss: {}".format(
+            ctx.bce.item(), ctx.cluster_error.item()))
+
+    def before_forwardp(self, ctx, data):
+        ctx.bce = 0
+        ctx.cluster_error = 0
+
     def compute_loss(self, ctx, outputs, x):
         recon_x, mu, logvar, output_embedding = outputs
         BCE = F.binary_cross_entropy(
@@ -23,4 +32,7 @@ class VAEExperiment(HoromaExperiment):
         cluster_error = _lambda * torch.norm(
             output_embedding - predicted_centers).pow(2)
         loss += cluster_error
+
+        ctx.bce += BCE
+        ctx.cluster_error += cluster_error
         return loss
