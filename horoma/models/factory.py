@@ -9,6 +9,7 @@ from horoma.models.caes import CAES
 
 EMBEDDING_MODELS = {
     'ae': AE,
+    'vae': AE,
     'caes': CAES
 }
 

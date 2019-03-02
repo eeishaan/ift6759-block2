@@ -41,10 +41,9 @@ class AEExperiment(HoromaExperiment):
         return data
 
     def compute_loss(self, ctx, outputs, x):
-        recon_x, mu, logvar, output_embedding = outputs
+        recon_x, _, _, output_embedding = outputs
         BCE = F.binary_cross_entropy(
             recon_x, x.view(-1, 3072), reduction='sum')
-        # KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss = BCE
         numpy_embedding = output_embedding.detach().cpu().numpy()
         predicted_clusters = self._cluster_obj.predict(
@@ -60,6 +59,22 @@ class AEExperiment(HoromaExperiment):
             output_embedding - predicted_centers).pow(2)
         loss += cluster_error
 
-        ctx.bce += BCE/len(x)
-        ctx.cluster_error += cluster_error/len(x)
+        ctx.bce += BCE / len(x)
+        ctx.cluster_error += cluster_error / len(x)
+        return loss
+
+
+class VAEExperiment(AEExperiment):
+    def before_forwardp(self, ctx, data):
+        ctx.bce = 0
+        ctx.cluster_error = 0
+        ctx.kde = 0
+        return data
+
+    def compute_loss(self, ctx, outputs, x):
+        loss = super().compute_loss(ctx, outputs, x)
+        _, mu, logvar, _ = outputs
+        KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+        loss += KLD
+        ctx.kde += KLD / len(x)
         return loss
