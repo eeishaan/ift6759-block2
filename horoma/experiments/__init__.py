@@ -65,6 +65,9 @@ class HoromaExperiment(object):
             ctx.epoch, ctx.running_loss.item())
         print(message)
 
+        # return True as we don't want to stop
+        return True
+
     def before_backprop(self, ctx, outputs, data):
         pass
 
@@ -145,6 +148,7 @@ class HoromaExperiment(object):
                 epoch=epoch,
                 batch=0,
                 running_loss=0,
+                train_valid_loader=train_valid_loader,
                 valid_train_loader=valid_train_loader,
                 valid_valid_loader=valid_valid_loader,
             )
@@ -171,7 +175,9 @@ class HoromaExperiment(object):
 
             # Divide the loss by the number of batches
             ctx.running_loss /= len(train_train_loader)
-            self.after_train(ctx)
+            is_continue = self.after_train(ctx)
+            if not is_continue:
+                break
 
     def _train_cluster(self,
                        train_train_loader,
