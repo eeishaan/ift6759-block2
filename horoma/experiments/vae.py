@@ -22,6 +22,7 @@ class VAEExperiment(HoromaExperiment):
         )
         with torch.no_grad():
             for data in ctx.train_valid_loader:
+                data = data.to(DEVICE)
                 outputs = self._embedding_model(data)
                 loss = self.compute_loss(eval_ctx, outputs, data)
                 eval_ctx.running_loss += loss
