@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import torch
 from torch.nn import functional as F
 
@@ -10,6 +12,23 @@ class VAEExperiment(HoromaExperiment):
         super().after_train(ctx)
         print("BCE loss: {} Cluster loss: {}".format(
             ctx.bce.item(), ctx.cluster_error.item()))
+
+        # compute validation loss
+        self._embedding_model.eval()
+        eval_ctx = SimpleNamespace(
+            bce=0,
+            cluster_error=0,
+            running_loss=0
+        )
+        with torch.no_grad():
+            for data in ctx.train_valid_loader:
+                outputs = self._embedding_model(data)
+                loss = self.compute_loss(eval_ctx, outputs, data)
+                eval_ctx.running_loss += loss
+        eval_ctx.running_loss /= len(ctx.train_valid_loader)
+        if eval_ctx.running_loss > ctx.running_loss:
+            return False
+        return True
 
     def before_forwardp(self, ctx, data):
         ctx.bce = 0
