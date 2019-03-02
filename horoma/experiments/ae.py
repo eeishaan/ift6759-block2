@@ -7,7 +7,7 @@ from horoma.cfg import DEVICE
 from horoma.experiments import HoromaExperiment
 
 
-class VAEExperiment(HoromaExperiment):
+class AEExperiment(HoromaExperiment):
     def after_train(self, ctx):
         super().after_train(ctx)
         print("BCE loss: {} Cluster loss: {}".format(

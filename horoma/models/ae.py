@@ -3,13 +3,13 @@ from torch import nn
 from torch.nn import functional as F
 
 
-class VAE(nn.Module):
+class AE(nn.Module):
     """
     Reference: https://github.com/pytorch/examples/blob/master/vae/main.py
     """
 
     def __init__(self):
-        super(VAE, self).__init__()
+        super(AE, self).__init__()
 
         latent_dim = 8
         self.fc1 = nn.Linear(3072, 400)
