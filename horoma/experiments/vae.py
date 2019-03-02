@@ -49,7 +49,9 @@ class VAEExperiment(HoromaExperiment):
         numpy_embedding = output_embedding.detach().cpu().numpy()
         predicted_clusters = self._cluster_obj.predict(
             numpy_embedding).reshape(-1)
-        cluster_centers = self._cluster_obj.cluster_centers_
+        cluster_centers = self._cluster_obj.cluster_centers_ \
+            if hasattr(self._cluster_obj, 'cluster_centers_') \
+            else self._cluster_obj.means_
         predicted_centers = cluster_centers[predicted_clusters]
         predicted_centers = torch.Tensor(predicted_centers).to(DEVICE)
 
