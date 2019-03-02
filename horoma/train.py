@@ -107,6 +107,7 @@ def train_model(embedding_name, cluster_method_name, mode, params):
         for _ in range(num_loops):
             augmented_data[class_label].extend(
                 map(tranformer_pipeline, class_data))
+        augmented_data[class_label] = augmented_data[class_label][:max_data_per_class]
 
     valid_split = 0.5
     valid_dataset = {label: train_test_split(
