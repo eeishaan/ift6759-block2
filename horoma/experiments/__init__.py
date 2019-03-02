@@ -77,11 +77,11 @@ class HoromaExperiment(object):
     def before_test(self, ctx):
         ctx.predictions = []
 
-    def before_train(self, ctx, train_train_loader):
+    def before_train(self, ctx, train_train_no_aug_loader):
         print("Starting epoch {}".format(ctx.epoch))
 
         # train cluster on learnt or random embedding
-        v_f1 = self._train_cluster(train_train_loader,
+        v_f1 = self._train_cluster(train_train_no_aug_loader,
                                    ctx.valid_train_loader, ctx.valid_valid_loader)
         self.lr_scheduler.step(v_f1)
 
@@ -134,6 +134,7 @@ class HoromaExperiment(object):
 
     def _train_embedding(self,
                          train_train_loader,
+                         train_train_no_aug_loader,
                          train_valid_loader,
                          epochs,
                          start_epoch,
@@ -153,7 +154,7 @@ class HoromaExperiment(object):
                 valid_valid_loader=valid_valid_loader,
             )
 
-            self.before_train(ctx, train_train_loader)
+            self.before_train(ctx, train_train_no_aug_loader)
             for batch, data in enumerate(train_train_loader):
                 ctx.batch = batch
                 data = data.to(DEVICE)
@@ -180,7 +181,7 @@ class HoromaExperiment(object):
                 break
 
     def _train_cluster(self,
-                       train_train_loader,
+                       train_train_no_aug_loader,
                        valid_train_loader,
                        valid_valid_loader,
                        no_save=False):
@@ -191,7 +192,7 @@ class HoromaExperiment(object):
         embeddings = []
         self._embedding_model.eval()
         with torch.no_grad():
-            for data in train_train_loader:
+            for data in train_train_no_aug_loader:
                 data = data.to(DEVICE)
                 data_embedding = self._embedding_model.embedding(data)
                 embeddings.extend(data_embedding.tolist())
@@ -262,7 +263,8 @@ class HoromaExperiment(object):
         # return f1 for LR decay
         return f1
 
-    def train(self, train_train_loader, train_valid_loader, epochs,
+    def train(self, train_train_loader, train_train_no_aug_loader,
+              train_valid_loader, epochs,
               valid_train_loader=None, valid_valid_loader=None,
               start_epoch=None, mode=TrainMode.TRAIN_ALL):
         # set start_epoch differently if you want to resume training from a
@@ -274,8 +276,12 @@ class HoromaExperiment(object):
         if mode == TrainMode.TRAIN_ONLY_CLUSTER:
             self.load_experiment(load_embedding=True, load_cluster=False)
         else:
-            self._train_embedding(train_train_loader, train_valid_loader, epochs,
-                                  start_epoch, valid_train_loader,
+            self._train_embedding(train_train_loader,
+                                  train_train_no_aug_loader,
+                                  train_valid_loader,
+                                  epochs,
+                                  start_epoch,
+                                  valid_train_loader,
                                   valid_valid_loader)
 
         if mode == TrainMode.TRAIN_ONLY_EMBEDDING:
@@ -286,5 +292,5 @@ class HoromaExperiment(object):
             print(err)
             return
 
-        self._train_cluster(train_train_loader,
+        self._train_cluster(train_train_no_aug_loader,
                             valid_train_loader, valid_valid_loader)

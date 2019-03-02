@@ -35,8 +35,8 @@ class AEExperiment(HoromaExperiment):
             return False
         return True
 
-    def before_train(self, ctx, train_train_loader):
-        super().before_train(ctx, train_train_loader)
+    def before_train(self, ctx, train_train_no_aug_loader):
+        super().before_train(ctx, train_train_no_aug_loader)
         ctx.bce = 0
         ctx.cluster_error = 0
 
@@ -65,8 +65,8 @@ class AEExperiment(HoromaExperiment):
 
 
 class VAEExperiment(AEExperiment):
-    def before_train(self, ctx, train_train_loader):
-        super().before_train(ctx, train_train_loader)
+    def before_train(self, ctx, train_train_no_aug_loader):
+        super().before_train(ctx, train_train_no_aug_loader)
         ctx.kld = 0
 
     def compute_loss(self, ctx, outputs, x):

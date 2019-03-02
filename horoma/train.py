@@ -2,11 +2,12 @@
 import argparse
 import os
 
+import numpy as np
 import PIL
 import torch
 import yaml
 from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader, SubsetRandomSampler
 from torchvision import transforms
 
 from horoma.constants import SAVED_MODEL_DIR, TrainMode
@@ -74,21 +75,31 @@ def train_model(embedding_name, cluster_method_name, mode, params):
         transforms.ToTensor(),
     ])
     # load data
-    train_dataset = HoromaDataset(
-        split='train', transform=tranformer_pipeline)
-    valid_dataset = HoromaDataset(
-        split='valid')
+    train_dataset = HoromaDataset(split='train', transform=tranformer_pipeline)
+    train_dataset_no_aug = HoromaDataset(
+        split='train', transform=transforms.ToTensor(),
+    )
+    valid_dataset = HoromaDataset(split='valid')
 
     # Split train dataset in two
-    train_train_size = int(len(train_dataset) * 0.95)
-    train_valid_size = len(train_dataset) - train_train_size
-    train_train_dataset, train_valid_dataset = random_split(
-        train_dataset, [train_train_size, train_valid_size])
+    train_split = 0.95
+    train_len = len(train_dataset)
+    train_indices = np.arange(train_len)
+    np.random.shuffle(train_indices)
+    train_train_size = int(train_len * train_split)
+    train_train_indices = train_indices[:train_train_size]
+    train_valid_indices = train_indices[train_train_size:]
+
+    train_train_sampler = SubsetRandomSampler(train_train_indices)
+    train_train_no_aug_sampler = SubsetRandomSampler(train_train_indices)
+    train_valid_sampler = SubsetRandomSampler(train_valid_indices)
 
     train_train_loader = DataLoader(
-        train_train_dataset, batch_size=100, shuffle=True)
+        train_dataset, batch_size=100, sampler=train_train_sampler)
+    train_train_no_aug_loader = DataLoader(
+        train_dataset_no_aug, batch_size=100, sampler=train_train_no_aug_sampler)
     train_valid_loader = DataLoader(
-        train_valid_dataset, batch_size=100, shuffle=True)
+        train_dataset, batch_size=100, sampler=train_valid_sampler)
 
     per_class_data = {}
     for data, label in valid_dataset:
@@ -153,8 +164,9 @@ def train_model(embedding_name, cluster_method_name, mode, params):
 
     # get experiment object
     experiment = experiment_factory(embedding_name, experiment_params)
-    experiment.train(train_train_loader, train_valid_loader,
-                     params['epochs'], valid_train_loader, valid_valid_loader, mode=mode)
+    experiment.train(train_train_loader, train_train_no_aug_loader,
+                     train_valid_loader, params['epochs'], valid_train_loader,
+                     valid_valid_loader, mode=mode)
 
 
 def train(args):
