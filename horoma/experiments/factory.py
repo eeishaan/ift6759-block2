@@ -1,9 +1,12 @@
+from horoma.experiments.ae import AEExperiment, VAEExperiment
 from horoma.experiments.cae import CAEExperiment
-from horoma.experiments.vae import VAEExperiment
+from horoma.experiments.caes import CAESExperiment
 
 SUPPORTED_EXP = {
+    'ae': AEExperiment,
     'vae': VAEExperiment,
-    'cae': CAEExperiment
+    'cae': CAEExperiment,
+    'caes': CAESExperiment
 }
 
 

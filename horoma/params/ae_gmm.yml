@@ -3,6 +3,6 @@ optimizer_params:
 optimizer: Adam
 criterion: VAE_LOSS
 cluster_params:
-  n_clusters: 17
-exp_file: vae_mini_batch_kmeans.pt
+  n_components: 17
+exp_file: ae_gmm.pt
 epochs: 100
