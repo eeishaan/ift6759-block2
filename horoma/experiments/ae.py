@@ -67,14 +67,12 @@ class AEExperiment(HoromaExperiment):
 class VAEExperiment(AEExperiment):
     def before_train(self, ctx, train_train_loader):
         super().before_train(ctx, train_train_loader)
-        ctx.bce = 0
-        ctx.cluster_error = 0
-        ctx.kde = 0
+        ctx.kld = 0
 
     def compute_loss(self, ctx, outputs, x):
         loss = super().compute_loss(ctx, outputs, x)
         _, mu, logvar, _ = outputs
         KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
         loss += KLD
-        ctx.kde += KLD / len(x)
+        ctx.kld += KLD / len(x)
         return loss
