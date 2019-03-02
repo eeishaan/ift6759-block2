@@ -31,7 +31,7 @@ class VAEExperiment(HoromaExperiment):
               .format(eval_ctx.running_loss.item(),
                       eval_ctx.bce.item(),
                       eval_ctx.cluster_error.item()))
-        if eval_ctx.cluster_error > ctx.cluster_error:
+        if eval_ctx.running_loss > ctx.running_loss:
             return False
         return True
 
