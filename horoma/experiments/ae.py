@@ -35,10 +35,10 @@ class AEExperiment(HoromaExperiment):
             return False
         return True
 
-    def before_forwardp(self, ctx, data):
+    def before_train(self, ctx, train_train_loader):
+        super().before_train(ctx, train_train_loader)
         ctx.bce = 0
         ctx.cluster_error = 0
-        return data
 
     def compute_loss(self, ctx, outputs, x):
         recon_x, _, _, output_embedding = outputs
@@ -65,11 +65,11 @@ class AEExperiment(HoromaExperiment):
 
 
 class VAEExperiment(AEExperiment):
-    def before_forwardp(self, ctx, data):
+    def before_train(self, ctx, train_train_loader):
+        super().before_train(ctx, train_train_loader)
         ctx.bce = 0
         ctx.cluster_error = 0
         ctx.kde = 0
-        return data
 
     def compute_loss(self, ctx, outputs, x):
         loss = super().compute_loss(ctx, outputs, x)
