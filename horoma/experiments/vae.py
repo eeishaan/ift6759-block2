@@ -27,7 +27,9 @@ class VAEExperiment(HoromaExperiment):
                 loss = self.compute_loss(eval_ctx, outputs, data)
                 eval_ctx.running_loss += loss
         eval_ctx.running_loss /= len(ctx.train_valid_loader)
-        if eval_ctx.running_loss > ctx.running_loss:
+        print("Eval loss:{} BCE: {} Cluster loss: {}".format(
+            ctx.running_loss.item(), ctx.bce.item(), ctx.cluster_error.item()))
+        if eval_ctx.cluster_error > ctx.cluster_error:
             return False
         return True
 
@@ -54,6 +56,6 @@ class VAEExperiment(HoromaExperiment):
             output_embedding - predicted_centers).pow(2)
         loss += cluster_error
 
-        ctx.bce += BCE
-        ctx.cluster_error += cluster_error
+        ctx.bce += BCE/len(x)
+        ctx.cluster_error += cluster_error/len(x)
         return loss
