@@ -1,0 +1,31 @@
+Error changing group of pid 148770: No space left on device
+
+Due to MODULEPATH changes, the following have been reloaded:
+  1) openmpi/2.1.1
+
+[33mWARNING:[0m underlay of /usr/bin/nvidia-smi required more than 50 (668) bind mounts
+
+==============NVSMI LOG==============
+
+Timestamp                           : Mon Mar  4 22:49:38 2019
+Driver Version                      : 410.73
+CUDA Version                        : 10.0
+
+Attached GPUs                       : 16
+GPU 00000000:06:00.0
+    Accounting Mode                 : Enabled
+    Accounting Mode Buffer Size     : 4000
+    Accounted Processes
+        Process ID                  : 148988
+            GPU Utilization         : 2 %
+            Memory Utilization      : 0 %
+            Max memory usage        : 333 MiB
+            Time                    : 10141 ms
+            Is Running              : 0
+        Process ID                  : 56247
+            GPU Utilization         : 1 %
+            Memory Utilization      : 0 %
+            Max memory usage        : 0 MiB
+            Time                    : 10258 ms
+            Is Running              : 0
+
