@@ -1,5 +1,3 @@
-# License: BSD
-# Author: Sasank Chilamkurthy
 
 from __future__ import print_function, division
 
@@ -27,7 +25,8 @@ from torch.utils.data import Dataset
 from torchvision import datasets, models, transforms
 from torch.utils.data import DataLoader
 from sklearn.cluster import KMeans
-
+from sklearn import warnings
+from sklearn.cluster import MiniBatchKMeans
 
 DATA_ROOT_FOLDER = '/rap/jvb-000-aa/COURS2019/etudiants/data/horoma'
 
@@ -205,11 +204,11 @@ class SqueezeImplement(object):
         self.batch_size = 8
 
         # Number of epochs to train for
-        self.num_epochs = 3
+        self.num_epochs = 15
 
         # Flag for feature extracting. When False, we finetune the whole model,
         #   when True we only update the reshaped layer params
-        self.feature_extract = True
+        self.feature_extract = False
 
         self.use_pretrained = True
 
@@ -235,10 +234,13 @@ class SqueezeImplement(object):
         # load data
         train_dataset = HoromaDataset(split='train', transform=transforms.ToTensor())
         valid_dataset = HoromaDataset(split='valid', transform=transforms.ToTensor())
+        train_overlapped_ds = HoromaDataset(split='train_overlapped', transform=transforms.ToTensor())
+        valid_overlapped_ds = HoromaDataset(split='valid_overlapped', transform=transforms.ToTensor())
+
         train_loader = DataLoader(train_dataset, batch_size=100, shuffle=True)
         valid_loader = DataLoader(valid_dataset, batch_size=100, shuffle=False)
-
-
+        train_overlapped = DataLoader(train_overlapped_ds, batch_size=100, shuffle=False)
+        valid_overlapped = DataLoader(valid_overlapped_ds, batch_size=100, shuffle=False)
         # Initialize the model for this run
         model_ft, input_size = self.initialize_model(self.model_name, self.num_classes, self.feature_extract)
         # Send the model to GPU
@@ -266,15 +268,16 @@ class SqueezeImplement(object):
         # Observe that all parameters are being optimized
         optimizer_ft = optim.SGD(params_to_update, lr=0.001, momentum=0.9)
 
-        # Setup the loss fxn
-        criterion = nn.CrossEntropyLoss()
-
         # Train and evaluate
-        # model_ft, hist = self.train_model(model_ft, train_loader, criterion, optimizer_ft, self.num_epochs, True)
+        model_ft, hist = self.train_model(model_ft, train_loader, optimizer_ft, self.num_epochs, True)
 
-        model_ft, hist = self.eval_model(model_ft, valid_loader, criterion, optimizer_ft, self.num_epochs, False)
+        model_ft, hist = self.eval_model(model_ft, valid_loader, optimizer_ft, 5)
 
-    def train_model(self, model, train_loader, criterion, optimizer, num_epochs=25,use_kmeans=True):
+
+    def train_model(self, model, train_loader, optimizer, num_epochs=25, use_kmeans=False):
+
+        print("=================")
+        print("Training model...")
         since = time.time()
 
         val_acc_history = []
@@ -282,10 +285,11 @@ class SqueezeImplement(object):
         best_model_wts = copy.deepcopy(model.state_dict())
         best_acc = 0.0
 
+
         for epoch in range(num_epochs):
             print('Epoch {}/{}'.format(epoch, num_epochs - 1))
             print('-' * 10)
-
+           
             model.train()  # Set model to training mode
 
             running_loss = 0.0
@@ -293,9 +297,11 @@ class SqueezeImplement(object):
 
             # Iterate over data.
             for _, inputs in enumerate(train_loader):
+
                 inputs = inputs.to(self.DEVICE)
-                # labels = labels.to(self.DEVICE)
+
                 # zero the parameter gradients
+
                 optimizer.zero_grad()
 
                 # forward
@@ -306,65 +312,124 @@ class SqueezeImplement(object):
                     #   mode we calculate the loss by summing the final output and the auxiliary output
                     #   but in testing we only consider the final output.
                     if use_kmeans:
-                        #print("Initial:", labels)
                         outputs = model(inputs)
                         outputs_copy = outputs.to('cpu')
                         output_arr = outputs_copy.detach().numpy()
-                        if (len(output_arr) < 2):
-                            arrtmp=[]
-                            arrtmp.append(int(outputs.tolist()[0][0]))
-                            labels2 = torch.tensor(arrtmp)
-                            labels2 = labels2.type(torch.LongTensor)
+                        if len(output_arr) < 2:
+                            arrtmp = []
+                            arrtmp.append(int(outputs_copy.tolist()[0][0]))
+                            labels2 = (torch.tensor(arrtmp)).type(torch.LongTensor)
                             labels = labels2.to(self.DEVICE)
                         else:
-                            clf = KMeans(n_clusters=self.num_classes)
-                            clf.fit(output_arr)
-                            labels2 = torch.from_numpy(clf.labels_)
-                            labels2 = labels2.type(torch.LongTensor)
-                            labels = labels2.to(self.DEVICE)
+                            with warnings.catch_warnings():
+                                warnings.simplefilter("ignore")
+                                #clf = KMeans(n_clusters=self.num_classes).fit(output_arr)
+                                clf = MiniBatchKMeans(n_clusters=self.num_classes).partial_fit(output_arr)
+                                labels2 = (torch.from_numpy(clf.predict(output_arr))).type(torch.LongTensor)
+                                labels = labels2.to(self.DEVICE)
+
+                        criterion = nn.CrossEntropyLoss()
                         loss = criterion(outputs, labels)
+                        #print("Loss index: ",loss.item(), " Epoch: ", epoch)
+                        #print("Outputs: ", outputs)
+                        #print("Labels: ", labels)
+
                     else:
                         outputs = model(inputs)
-                        print("Outputs: ", outputs)
                         labels_copy = labels.to('cpu')
                         labels2 = labels_copy.detach().numpy()
-                        new_labels = list(np.squeeze(labels2.astype('int64'), axis=1))
-                        labels = torch.from_numpy(np.asarray(new_labels))
-                        labels = labels.type(torch.LongTensor)
+                        labels2 = list(np.squeeze(labels2.astype('int64'), axis=1))
+                        labels = (torch.from_numpy(np.asarray(labels2))).type(torch.LongTensor)
                         labels = labels.to(self.DEVICE)
-                        print("Last labels: ", labels)
+                        criterion = nn.CrossEntropyLoss()
                         loss = criterion(outputs, labels)
-                        print("Loss: {}".format(loss.item()))
 
                     _, preds = torch.max(outputs, 1)
-
-                    # backward + optimize only if in training phase
 
                     loss.backward()
                     optimizer.step()
 
                 # statistics
-                print(inputs.size(0))
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
 
             epoch_loss = running_loss / len(train_loader.dataset)
             epoch_acc = running_corrects.double() / len(train_loader.dataset)
             print("Loader len: ", len(train_loader.dataset))
-            print('Loss: {:.4f} Acc: {:.4f}'.format(epoch_loss, epoch_acc))
+            time_elapsed = time.time() - since
+            print('Time: {:.0f}m Loss: {:.4f} Acc: {:.4f}'.format(time_elapsed // 60, epoch_loss, epoch_acc))
 
-            print()
+        print()
 
         time_elapsed = time.time() - since
         print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-        print('Best val Acc: {:4f}'.format(best_acc))
+        # print('Best val Acc: {:4f}'.format(best_acc))
+
+        # load last model weights
+        best_model_wts = copy.deepcopy(model.state_dict())
+        model.load_state_dict(best_model_wts)
+        return model, val_acc_history
+
+    def eval_model(self, model, valid_loader, optimizer, num_epochs=25):
+        
+        print("=================")
+        print("Evaluating model...")
+
+        val_acc_history = []
+        since = time.time()
+
+        model.eval()  # Set model to evaluation  mode
+
+        running_loss = 0.0
+        running_corrects = 0
+
+        # Iterate over data.
+        for inputs, labels in valid_loader:
+            inputs = inputs.to(self.DEVICE)
+            labels = labels.to(self.DEVICE)
+            # zero the parameter gradients
+            optimizer.zero_grad()
+
+            # forward
+            # track history if only in train
+            with torch.set_grad_enabled(False):
+                # Get model outputs and calculate loss
+                # Special case for inception because in training it has an auxiliary output. In train
+                #   mode we calculate the loss by summing the final output and the auxiliary output
+                #   but in testing we only consider the final output.
+                outputs = model(inputs)
+                labels_copy = labels.to('cpu')
+                labels2 = labels_copy.detach().numpy()
+                labels2 = list(np.squeeze(labels2.astype('int64'), axis=1))
+                labels = torch.from_numpy(np.asarray(labels2))
+                labels = labels.type(torch.LongTensor)
+                labels = labels.to(self.DEVICE)
+                criterion = nn.CrossEntropyLoss()
+                loss = criterion(outputs, labels)
+
+                _, preds = torch.max(outputs, 1)
+
+
+        epoch_acc = running_corrects.double() / len(valid_loader.dataset)
+        print("Loader len: ", len(valid_loader.dataset))
+        
+        best_acc = epoch_acc
+        best_model_wts = copy.deepcopy(model.state_dict())
+        val_acc_history.append(epoch_acc)
+
+        print()
+
+        print('Valid Acc: {:4f}'.format(best_acc))
 
         # load best model weights
         model.load_state_dict(best_model_wts)
         return model, val_acc_history
 
+    def eval_model2(self, model, valid_loader, optimizer, num_epochs=25):
 
-    def eval_model(self, model, valid_loader, criterion, optimizer, num_epochs=25,is_inception=False,use_kmeans=False):
+        print("=================")
+        print("Evaluating model...")
+
         since = time.time()
 
         val_acc_history = []
@@ -376,7 +441,7 @@ class SqueezeImplement(object):
             print('Epoch {}/{}'.format(epoch, num_epochs - 1))
             print('-' * 10)
 
-            model.eval()  # Set model to training mode
+            model.eval()  # Set model to evaluation  mode
 
             running_loss = 0.0
             running_corrects = 0
@@ -390,46 +455,24 @@ class SqueezeImplement(object):
 
                 # forward
                 # track history if only in train
-                with torch.set_grad_enabled(True):
+                with torch.set_grad_enabled(False):
                     # Get model outputs and calculate loss
                     # Special case for inception because in training it has an auxiliary output. In train
                     #   mode we calculate the loss by summing the final output and the auxiliary output
                     #   but in testing we only consider the final output.
-                    if use_kmeans:
-                        #print("Initial:", labels)
-                        outputs = model(inputs)
-                        outputs_copy = outputs.to('cpu')
-                        output_arr = outputs_copy.detach().numpy()
-                        if (len(output_arr) < 2):
-                            arrtmp=[]
-                            arrtmp.append(int(outputs.tolist()[0][0]))
-                            labels2 = torch.tensor(arrtmp)
-                            labels2 = labels2.type(torch.LongTensor)
-                            labels = labels2.to(self.DEVICE)
-                        else:
-                            clf = KMeans(n_clusters=self.num_classes)
-                            clf.fit(output_arr)
-                            labels2 = torch.from_numpy(clf.labels_)
-                            labels2 = labels2.type(torch.LongTensor)
-                            labels=labels2.to(self.DEVICE)
-                        loss = criterion(outputs, labels)
-                    else:
-                        outputs = model(inputs)
-                        labels_copy = labels.to('cpu')
-                        labels2 = labels_copy.detach().numpy()
-                        new_labels = list(np.squeeze(labels2.astype('int64'), axis=1))
-                        labels = torch.from_numpy(np.asarray(new_labels))
-                        labels = labels.type(torch.LongTensor)
-                        labels = labels.to(self.DEVICE)
-                        loss = criterion(outputs, labels)
+                    outputs = model(inputs)
+                    labels_copy = labels.to('cpu')
+                    labels2 = labels_copy.detach().numpy()
+                    labels2 = list(np.squeeze(labels2.astype('int64'), axis=1))
+                    labels = torch.from_numpy(np.asarray(labels2))
+                    labels = labels.type(torch.LongTensor)
+                    labels = labels.to(self.DEVICE)
+                    criterion = nn.CrossEntropyLoss()
+                    loss = criterion(outputs, labels)
 
                     _, preds = torch.max(outputs, 1)
 
-                    loss.backward()
-                    optimizer.step()
-
                 # statistics
-                print(inputs.size(0))
                 running_loss += loss.item() * inputs.size(0)
                 running_corrects += torch.sum(preds == labels.data)
 
@@ -453,7 +496,6 @@ class SqueezeImplement(object):
         # load best model weights
         model.load_state_dict(best_model_wts)
         return model, val_acc_history
-
 
     def set_parameter_requires_grad(self, model, feature_extracting):
         if feature_extracting:
