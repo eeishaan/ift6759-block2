@@ -1,0 +1,202 @@
+Initializing Datasets and Dataloaders...
+SqueezeNet(
+  (features): Sequential(
+    (0): Conv2d(3, 96, kernel_size=(7, 7), stride=(2, 2))
+    (1): ReLU(inplace)
+    (2): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+    (3): Fire(
+      (squeeze): Conv2d(96, 16, kernel_size=(1, 1), stride=(1, 1))
+      (squeeze_activation): ReLU(inplace)
+      (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
+      (expand1x1_activation): ReLU(inplace)
+      (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (expand3x3_activation): ReLU(inplace)
+    )
+    (4): Fire(
+      (squeeze): Conv2d(128, 16, kernel_size=(1, 1), stride=(1, 1))
+      (squeeze_activation): ReLU(inplace)
+      (expand1x1): Conv2d(16, 64, kernel_size=(1, 1), stride=(1, 1))
+      (expand1x1_activation): ReLU(inplace)
+      (expand3x3): Conv2d(16, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (expand3x3_activation): ReLU(inplace)
+    )
+    (5): Fire(
+      (squeeze): Conv2d(128, 32, kernel_size=(1, 1), stride=(1, 1))
+      (squeeze_activation): ReLU(inplace)
+      (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
+      (expand1x1_activation): ReLU(inplace)
+      (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (expand3x3_activation): ReLU(inplace)
+    )
+    (6): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+    (7): Fire(
+      (squeeze): Conv2d(256, 32, kernel_size=(1, 1), stride=(1, 1))
+      (squeeze_activation): ReLU(inplace)
+      (expand1x1): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1))
+      (expand1x1_activation): ReLU(inplace)
+      (expand3x3): Conv2d(32, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (expand3x3_activation): ReLU(inplace)
+    )
+    (8): Fire(
+      (squeeze): Conv2d(256, 48, kernel_size=(1, 1), stride=(1, 1))
+      (squeeze_activation): ReLU(inplace)
+      (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
+      (expand1x1_activation): ReLU(inplace)
+      (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (expand3x3_activation): ReLU(inplace)
+    )
+    (9): Fire(
+      (squeeze): Conv2d(384, 48, kernel_size=(1, 1), stride=(1, 1))
+      (squeeze_activation): ReLU(inplace)
+      (expand1x1): Conv2d(48, 192, kernel_size=(1, 1), stride=(1, 1))
+      (expand1x1_activation): ReLU(inplace)
+      (expand3x3): Conv2d(48, 192, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (expand3x3_activation): ReLU(inplace)
+    )
+    (10): Fire(
+      (squeeze): Conv2d(384, 64, kernel_size=(1, 1), stride=(1, 1))
+      (squeeze_activation): ReLU(inplace)
+      (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
+      (expand1x1_activation): ReLU(inplace)
+      (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (expand3x3_activation): ReLU(inplace)
+    )
+    (11): MaxPool2d(kernel_size=3, stride=2, padding=0, dilation=1, ceil_mode=True)
+    (12): Fire(
+      (squeeze): Conv2d(512, 64, kernel_size=(1, 1), stride=(1, 1))
+      (squeeze_activation): ReLU(inplace)
+      (expand1x1): Conv2d(64, 256, kernel_size=(1, 1), stride=(1, 1))
+      (expand1x1_activation): ReLU(inplace)
+      (expand3x3): Conv2d(64, 256, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (expand3x3_activation): ReLU(inplace)
+    )
+  )
+  (classifier): Sequential(
+    (0): Dropout(p=0.5)
+    (1): Conv2d(512, 1000, kernel_size=(1, 1), stride=(1, 1))
+    (2): ReLU(inplace)
+    (3): AdaptiveAvgPool2d(output_size=(1, 1))
+  )
+)
+Params to learn:
+	 features.0.weight
+	 features.0.bias
+	 features.3.squeeze.weight
+	 features.3.squeeze.bias
+	 features.3.expand1x1.weight
+	 features.3.expand1x1.bias
+	 features.3.expand3x3.weight
+	 features.3.expand3x3.bias
+	 features.4.squeeze.weight
+	 features.4.squeeze.bias
+	 features.4.expand1x1.weight
+	 features.4.expand1x1.bias
+	 features.4.expand3x3.weight
+	 features.4.expand3x3.bias
+	 features.5.squeeze.weight
+	 features.5.squeeze.bias
+	 features.5.expand1x1.weight
+	 features.5.expand1x1.bias
+	 features.5.expand3x3.weight
+	 features.5.expand3x3.bias
+	 features.7.squeeze.weight
+	 features.7.squeeze.bias
+	 features.7.expand1x1.weight
+	 features.7.expand1x1.bias
+	 features.7.expand3x3.weight
+	 features.7.expand3x3.bias
+	 features.8.squeeze.weight
+	 features.8.squeeze.bias
+	 features.8.expand1x1.weight
+	 features.8.expand1x1.bias
+	 features.8.expand3x3.weight
+	 features.8.expand3x3.bias
+	 features.9.squeeze.weight
+	 features.9.squeeze.bias
+	 features.9.expand1x1.weight
+	 features.9.expand1x1.bias
+	 features.9.expand3x3.weight
+	 features.9.expand3x3.bias
+	 features.10.squeeze.weight
+	 features.10.squeeze.bias
+	 features.10.expand1x1.weight
+	 features.10.expand1x1.bias
+	 features.10.expand3x3.weight
+	 features.10.expand3x3.bias
+	 features.12.squeeze.weight
+	 features.12.squeeze.bias
+	 features.12.expand1x1.weight
+	 features.12.expand1x1.bias
+	 features.12.expand3x3.weight
+	 features.12.expand3x3.bias
+	 classifier.1.weight
+	 classifier.1.bias
+=================
+Training model...
+Epoch 0/14
+----------
+Loader len:  150700
+Loss: 2.8384 Acc: 0.0739
+Epoch 1/14
+----------
+Loader len:  150700
+Loss: 2.8286 Acc: 0.0761
+Epoch 2/14
+----------
+Loader len:  150700
+Loss: 2.8121 Acc: 0.0964
+Epoch 3/14
+----------
+Loader len:  150700
+Loss: 2.8041 Acc: 0.0871
+Epoch 4/14
+----------
+Loader len:  150700
+Loss: 2.8057 Acc: 0.0863
+Epoch 5/14
+----------
+Loader len:  150700
+Loss: 2.8093 Acc: 0.0903
+Epoch 6/14
+----------
+Loader len:  150700
+Loss: 2.8093 Acc: 0.0891
+Epoch 7/14
+----------
+Loader len:  150700
+Loss: 2.8083 Acc: 0.0943
+Epoch 8/14
+----------
+Loader len:  150700
+Loss: 2.8054 Acc: 0.1005
+Epoch 9/14
+----------
+Loader len:  150700
+Loss: 2.7979 Acc: 0.1013
+Epoch 10/14
+----------
+Loader len:  150700
+Loss: 2.7948 Acc: 0.1220
+Epoch 11/14
+----------
+Loader len:  150700
+Loss: 2.8249 Acc: 0.0755
+Epoch 12/14
+----------
+Loader len:  150700
+Loss: 2.8138 Acc: 0.0905
+Epoch 13/14
+----------
+Loader len:  150700
+Loss: 2.8057 Acc: 0.1041
+Epoch 14/14
+----------
+Loader len:  150700
+Loss: 2.8064 Acc: 0.1077
+
+Training complete in 78m 40s
+=================
+Evaluating model...
+Loader len:  480
+Loss: 2.7965 Acc: 0.1167
+Best val Acc: 0.116667
