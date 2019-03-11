@@ -138,7 +138,8 @@ def train_model(embedding_name, cluster_method_name, mode, params, no_augmentati
             augmented_data[class_label] = augmented_data[class_label][:max_data_per_class]
     else:
         for class_label, class_data in per_class_data.items():
-            augmented_data[class_label] = map(tranformer_pipeline, class_data)
+            augmented_data[class_label] = list(
+                map(tranformer_pipeline, class_data))
 
     # Stratified splitting
     valid_split = 0.5
