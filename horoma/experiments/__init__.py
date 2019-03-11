@@ -245,12 +245,13 @@ class HoromaExperiment(object):
 
         # evaluate cluster on valid_train set
         predicted_labels = [self._remap(x) for x in predicted_labels]
-        acc, f1, ari = compute_metrics(true_labels, predicted_labels)
-        print("Validation Train Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f}".format(
-            acc, f1, ari))
+        acc, f1, ari, nmi = compute_metrics(true_labels, predicted_labels)
+        print("Validation Train Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f} NMI: {:.4f}".format(
+            acc, f1, ari, nmi))
         self._summary_writer.add_scalar('valid_train_acc', acc, epoch)
         self._summary_writer.add_scalar('valid_train_f1', f1, epoch)
         self._summary_writer.add_scalar('valid_train_ari', ari, epoch)
+        self._summary_writer.add_scalar('valid_train_nmi', nmi, epoch)
         # evaluate performance on valid_valid set
         true_labels = []
         embeddings = []
@@ -264,12 +265,13 @@ class HoromaExperiment(object):
         true_labels = np.array(true_labels)
         predicted_labels = self._cluster_obj.predict(embeddings)
         predicted_labels = [self._remap(x) for x in predicted_labels]
-        acc, f1, ari = compute_metrics(true_labels, predicted_labels)
-        print("Validation Valid Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f}".format(
-            acc, f1, ari))
+        acc, f1, ari, nmi = compute_metrics(true_labels, predicted_labels)
+        print("Validation Valid Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f} NMI: {:.4f}".format(
+            acc, f1, ari, nmi))
         self._summary_writer.add_scalar('valid_valid_acc', acc, epoch)
         self._summary_writer.add_scalar('valid_valid_f1', f1, epoch)
         self._summary_writer.add_scalar('valid_valid_ari', ari, epoch)
+        self._summary_writer.add_scalar('valid_valid_nmi', nmi, epoch)
 
         # return f1 for LR decay
         return f1
