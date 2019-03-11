@@ -5,11 +5,13 @@ from sklearn.cluster import KMeans, MiniBatchKMeans
 from sklearn.mixture import GaussianMixture
 
 from horoma.models.ae import AE
+from horoma.models.cae import CAE
 from horoma.models.caes import CAES
 
 EMBEDDING_MODELS = {
     'ae': AE,
     'vae': AE,
+    'cae': CAE,
     'caes': CAES
 }
 
