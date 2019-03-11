@@ -124,10 +124,10 @@ def train_model(embedding_name, cluster_method_name, mode, params, no_augmentati
             per_class_data[label] = []
         per_class_data[label].append(data)
 
+    augmented_data = {}
     if not no_class_balance:
         # manufacture more data
         max_data_per_class = 100
-        augmented_data = {}
         for class_label, class_data in per_class_data.items():
             data_len = len(class_data)
             augmented_data[class_label] = []
@@ -137,7 +137,8 @@ def train_model(embedding_name, cluster_method_name, mode, params, no_augmentati
                     map(tranformer_pipeline, class_data))
             augmented_data[class_label] = augmented_data[class_label][:max_data_per_class]
     else:
-        augmented_data = per_class_data
+        for class_label, class_data in per_class_data.items():
+            augmented_data[class_label] = map(tranformer_pipeline, class_data)
 
     # Stratified splitting
     valid_split = 0.5
