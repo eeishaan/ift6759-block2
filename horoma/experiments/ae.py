@@ -53,8 +53,8 @@ class AEExperiment(HoromaExperiment):
         if len(self._last_validation_loss) < self._patience:
             return True
 
-        if all(self._last_validation_loss[-i] >= self._last_validation_loss[-i-1]
-               for i in range(1, self._patience+1)):
+        if all(self._last_validation_loss[-i] >= self._last_validation_loss[-i - 1]
+               for i in range(1, self._patience + 1)):
             return False
 
         return True
@@ -145,8 +145,8 @@ class VAEExperiment(HoromaExperiment):
         if len(self._last_validation_loss) < self._patience:
             return True
 
-        if all(self._last_validation_loss[-i] >= self._last_validation_loss[-i-1]
-               for i in range(1, self._patience+1)):
+        if all(self._last_validation_loss[-i] >= self._last_validation_loss[-i - 1]
+               for i in range(1, self._patience + 1)):
             return False
 
         return True
