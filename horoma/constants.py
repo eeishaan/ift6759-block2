@@ -11,6 +11,7 @@ PCA_MODEL_DEFAULT_PATH = SAVED_MODEL_DIR / 'pca_model.sav'
 TSNE_MODEL_DEFAULT_PATH = SAVED_MODEL_DIR / 'tsne_model.sav'
 RESULT_DIR = Path(os.path.abspath(PROJECT_ROOT / '../results'))
 PARAM_DIR = PROJECT_ROOT / 'params'
+LOG_DIR = PROJECT_ROOT / 'log'
 
 
 class TrainMode(Enum):

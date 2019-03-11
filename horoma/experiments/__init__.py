@@ -20,6 +20,7 @@ class HoromaExperiment(object):
             experiment_file,
             embedding_model,
             cluster_obj,
+            summary_writer,
             embedding_optim=None,
             embedding_crit=None,
     ):
@@ -30,9 +31,11 @@ class HoromaExperiment(object):
         self._embedding_optim = embedding_optim
         self._embedding_crit = embedding_crit
         self._cluster_label_mapping = {}
+        self._summary_writer = summary_writer
         # send model to device
         self._embedding_model.to(DEVICE)
-
+        self._summary_writer.add_text(
+            'embedding_model', repr(self._embedding_model), 0)
         # initialize epoch var correctly
         self._start_epoch = 0
 
@@ -61,10 +64,11 @@ class HoromaExperiment(object):
             self.save_experiment(ctx, save_embedding=True, save_cluster=False)
 
         # print loss
-        message = "Epoch: {} Train Loss: {}".format(
-            ctx.epoch, ctx.running_loss.item())
+        loss = ctx.running_loss.item()
+        epoch = ctx.epoch
+        message = "Epoch: {} Train Loss: {}".format(epoch, loss)
         print(message)
-
+        self._summary_writer.add_scalar('train_train_loss', loss, epoch)
         # return True as we don't want to stop
         return True
 
@@ -79,10 +83,9 @@ class HoromaExperiment(object):
 
     def before_train(self, ctx, train_train_no_aug_loader):
         print("Starting epoch {}".format(ctx.epoch))
-
         # train cluster on learnt or random embedding
         v_f1 = self._train_cluster(train_train_no_aug_loader,
-                                   ctx.valid_train_loader, ctx.valid_valid_loader)
+                                   ctx.valid_train_loader, ctx.valid_valid_loader, ctx.epoch)
         self.lr_scheduler.step(v_f1)
 
     def compute_loss(self, ctx, outputs, labels):
@@ -184,6 +187,7 @@ class HoromaExperiment(object):
                        train_train_no_aug_loader,
                        valid_train_loader,
                        valid_valid_loader,
+                       epoch,
                        no_save=False):
         '''
         Train cluster and evaluate performance metrics on validation data
@@ -242,7 +246,9 @@ class HoromaExperiment(object):
         acc, f1, ari = compute_metrics(true_labels, predicted_labels)
         print("Validation Train Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f}".format(
             acc, f1, ari))
-
+        self._summary_writer.add_scalar('valid_train_acc', acc, epoch)
+        self._summary_writer.add_scalar('valid_train_f1', f1, epoch)
+        self._summary_writer.add_scalar('valid_train_ari', ari, epoch)
         # evaluate performance on valid_valid set
         true_labels = []
         embeddings = []
@@ -259,6 +265,9 @@ class HoromaExperiment(object):
         acc, f1, ari = compute_metrics(true_labels, predicted_labels)
         print("Validation Valid Acc: {:.4f} F1 score: {:.4f} ARI: {:.4f}".format(
             acc, f1, ari))
+        self._summary_writer.add_scalar('valid_valid_acc', acc, epoch)
+        self._summary_writer.add_scalar('valid_valid_f1', f1, epoch)
+        self._summary_writer.add_scalar('valid_valid_ari', ari, epoch)
 
         # return f1 for LR decay
         return f1
@@ -293,4 +302,4 @@ class HoromaExperiment(object):
             return
 
         self._train_cluster(train_train_no_aug_loader,
-                            valid_train_loader, valid_valid_loader)
+                            valid_train_loader, valid_valid_loader, epochs)

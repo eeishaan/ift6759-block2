@@ -7,10 +7,11 @@ import PIL
 import torch
 import yaml
 from sklearn.model_selection import train_test_split
+from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader, SubsetRandomSampler
 from torchvision import transforms
 
-from horoma.constants import SAVED_MODEL_DIR, TrainMode
+from horoma.constants import LOG_DIR, SAVED_MODEL_DIR, TrainMode
 from horoma.experiments.factory import experiment_factory
 from horoma.models.factory import (cluster_factory, embedding_factory,
                                    supported_cluster, supported_embedding)
@@ -175,6 +176,14 @@ def train_model(embedding_name, cluster_method_name, mode, params, no_augmentati
     os.makedirs(SAVED_MODEL_DIR, exist_ok=True)
     exp_file = os.path.join(SAVED_MODEL_DIR, params['exp_file'])
 
+    # make summary writer
+    log_dir = str(LOG_DIR / params['exp_file'])
+    writer = SummaryWriter(log_dir)
+    # write param file information
+    writer.add_text('param_file', str(params), 0)
+    writer.add_text('no_augmentation', str(no_augmentation), 0)
+    writer.add_text('no_class_balance', str(no_class_balance), 0)
+
     # set up exp parameters
     experiment_params = {
         "experiment_file": exp_file,
@@ -182,6 +191,7 @@ def train_model(embedding_name, cluster_method_name, mode, params, no_augmentati
         "cluster_obj": cluster_model,
         "embedding_optim": embedding_optim,
         "embedding_crit": embedding_crit,
+        "summary_writer": writer,
     }
 
     # get experiment object
