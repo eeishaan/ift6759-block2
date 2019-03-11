@@ -63,16 +63,12 @@ def get_train_parser(parent=None):
     parser.add_argument(
         '--no-augmentation',
         action="store_true",
-        default=False,
-        type=bool,
         help='Specify this flag to turn off data augmentation'
     )
 
     parser.add_argument(
         '--no-class-balance',
         action="store_true",
-        default=False,
-        type=bool,
         help="Specify this flag to turn off class balancing "
         "in validation dataset"
     )
