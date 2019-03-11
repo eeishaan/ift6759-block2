@@ -10,9 +10,15 @@ from horoma.experiments import HoromaExperiment
 class AEExperiment(HoromaExperiment):
     def after_train(self, ctx):
         super().after_train(ctx)
+        epoch = ctx.epoch
+        bce_loss = ctx.bce.item()
+        cluster_loss = ctx.cluster_error.item()
         print("BCE loss: {} Cluster loss: {}".format(
             ctx.bce.item(), ctx.cluster_error.item()))
-
+        self._summary_writer.add_scalar(
+            'train_train_bce_loss', bce_loss, epoch)
+        self._summary_writer.add_scalar(
+            'train_train_cluster_loss', cluster_loss, epoch)
         # compute validation loss
         self._embedding_model.eval()
         eval_ctx = SimpleNamespace(
@@ -27,10 +33,19 @@ class AEExperiment(HoromaExperiment):
                 loss = self.compute_loss(eval_ctx, outputs, data)
                 eval_ctx.running_loss += loss
         eval_ctx.running_loss /= len(ctx.train_valid_loader)
+        eval_running_loss = eval_ctx.running_loss.item()
+        eval_bce_loss = eval_ctx.bce.item()
+        eval_cluster_loss = eval_ctx.cluster_error.item()
         print("BCE: {} Cluster loss: {} Eval loss:{} "
-              .format(eval_ctx.bce.item(),
-                      eval_ctx.cluster_error.item(),
-                      eval_ctx.running_loss.item()))
+              .format(eval_bce_loss,
+                      eval_cluster_loss,
+                      eval_running_loss))
+        self._summary_writer.add_scalar(
+            'train_valid_bce_loss', eval_bce_loss, epoch)
+        self._summary_writer.add_scalar(
+            'train_valid_cluster_loss', eval_cluster_loss, epoch)
+        self._summary_writer.add_scalar(
+            'train_valid_loss', eval_running_loss, epoch)
         if eval_ctx.running_loss > ctx.running_loss:
             return False
         return True
@@ -67,9 +82,17 @@ class AEExperiment(HoromaExperiment):
 class VAEExperiment(HoromaExperiment):
     def after_train(self, ctx):
         super().after_train(ctx)
+        epoch = ctx.epoch
+        bce_loss, kld_loss, cluster_loss = ctx.bce.item(
+        ), ctx.kld.item(), ctx.cluster_error.item()
         print("BCE loss: {} KLD Loss: {}, Cluster loss: {} ".format(
-            ctx.bce.item(), ctx.kld.item(), ctx.cluster_error.item()))
-
+            bce_loss, kld_loss, cluster_loss))
+        self._summary_writer.add_scalar(
+            'train_train_bce_loss', bce_loss, epoch)
+        self._summary_writer.add_scalar(
+            'train_train_cluster_loss', cluster_loss, epoch)
+        self._summary_writer.add_scalar(
+            'train_train_kld_loss', kld_loss, epoch)
         # compute validation loss
         self._embedding_model.eval()
         eval_ctx = SimpleNamespace(
@@ -85,11 +108,24 @@ class VAEExperiment(HoromaExperiment):
                 loss = self.compute_loss(eval_ctx, outputs, data)
                 eval_ctx.running_loss += loss
         eval_ctx.running_loss /= len(ctx.train_valid_loader)
+        eval_running_loss = eval_ctx.running_loss.item()
+        eval_bce_loss = eval_ctx.bce.item()
+        eval_cluster_loss = eval_ctx.cluster_error.item()
+        eval_kld_loss = eval_ctx.kld.item()
         print("BCE: {} KDL: {} Cluster loss: {} Eval loss:{} "
-              .format(eval_ctx.bce.item(),
-                      eval_ctx.kld.item(),
-                      eval_ctx.cluster_error.item(),
-                      eval_ctx.running_loss.item()))
+              .format(eval_bce_loss,
+                      eval_kld_loss,
+                      eval_cluster_loss,
+                      eval_running_loss))
+        self._summary_writer.add_scalar(
+            'train_valid_bce_loss', eval_bce_loss, epoch)
+        self._summary_writer.add_scalar(
+            'train_valid_cluster_loss', eval_cluster_loss, epoch)
+        self._summary_writer.add_scalar(
+            'train_valid_loss', eval_running_loss, epoch)
+        self._summary_writer.add_scalar(
+            'train_valid_kld_loss', eval_kld_loss, epoch)
+
         if eval_ctx.running_loss > ctx.running_loss:
             return False
         return True
