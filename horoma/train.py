@@ -177,7 +177,7 @@ def train_model(embedding_name, cluster_method_name, mode, params, no_augmentati
     exp_file = os.path.join(SAVED_MODEL_DIR, params['exp_file'])
 
     # make summary writer
-    log_dir = LOG_DIR / params['exp_file']
+    log_dir = str(LOG_DIR / params['exp_file'])
     writer = SummaryWriter(log_dir)
     # write param file information
     writer.add_text('param_file', str(params), 0)
