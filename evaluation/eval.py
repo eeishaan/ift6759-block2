@@ -1,6 +1,7 @@
+import argparse
 import os
 import sys
-import argparse
+from types import SimpleNamespace
 
 import numpy as np
 
@@ -8,8 +9,8 @@ CURR_DIR = os.path.dirname(os.path.realpath(__file__))
 MODULE_DIR = os.path.realpath(os.path.join(CURR_DIR, '../'))
 sys.path.insert(0, MODULE_DIR)
 
-from horoma.utils.data import HoromaDataset
 from horoma.test import test
+from horoma.utils.data import HoromaDataset
 
 
 def eval_model(model_path, dataset_dir, split):
@@ -36,31 +37,14 @@ def eval_model(model_path, dataset_dir, split):
 
     You need to load the right one according to the `split`.
     """
-    dataset = HoromaDataset(dataset_dir, split)
-
-    # # SETUP MODEL # #
-    # Load your best model
-    print("\nLoading model from ({}).".format(model_path))
-    model = load(model_path)
-
-    # # INFERENCE # #
-    # Use model on dataset to predict the class triplet
-    pred = {}
-    for task in dataset.targets.keys():
-        cluster_pred = model[task]['kmeans'].predict(dataset.data)
-        target_pred = model[task]['cluster_label'][cluster_pred]
-        pred[task] = dataset.map_labels[task][target_pred]
-
-    # # PREDICTIONS # #
-    # Return the predicted class triplet as a numpy array of shape (nb_exemple, 3)
-    """ Example:
-    [['ES' '75' '25']
-     ['EN' '65' '15']
-     ['ES' '75' '20']]
-    """
-    y_pred = np.column_stack(
-        (pred['species'], pred['densities'], pred['heights']))
-    return y_pred
+    args = SimpleNamespace(
+        cluster='kmeans',
+        embedding='cae',
+        data_dir=dataset_dir,
+        model_path=model_path,
+    )
+    result = test(args)
+    return result
 
 
 if __name__ == "__main__":
