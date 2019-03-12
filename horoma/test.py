@@ -81,8 +81,6 @@ def test(args):
     cluster_model = cluster_factory(
         args.cluster, {})
 
-    os.makedirs(SAVED_MODEL_DIR, exist_ok=True)
-
     # set up exp parameters
     experiment_params = {
         "experiment_file": model_file,
@@ -93,7 +91,8 @@ def test(args):
     # get experiment object
     experiment = experiment_factory(args.embedding, experiment_params)
     experiment.load_experiment()
-    return experiment.test(test_loader)
+    res = experiment.test(test_loader)
+    return test_dataset.map_labels[res]
 
 
 if __name__ == '__main__':
