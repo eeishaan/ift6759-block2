@@ -46,14 +46,27 @@ class AEExperiment(HoromaExperiment):
             'train_valid_cluster_loss', eval_cluster_loss, epoch)
         self._summary_writer.add_scalar(
             'train_valid_loss', eval_running_loss, epoch)
-        if eval_ctx.running_loss > ctx.running_loss:
+
+        # add validation loss to the list of losses
+        self._last_validation_loss.append(eval_running_loss)
+
+        if len(self._last_validation_loss) < self._patience:
+            return True
+
+        if all(self._last_validation_loss[-i] >= self._last_validation_loss[-i - 1]
+               for i in range(1, self._patience + 1)):
             return False
+
         return True
 
     def before_train(self, ctx, train_train_no_aug_loader):
         super().before_train(ctx, train_train_no_aug_loader)
         ctx.bce = 0
         ctx.cluster_error = 0
+
+        # Add validation loss list attribute
+        if not hasattr(self, '_last_validation_loss'):
+            self._last_validation_loss = []
 
     def compute_loss(self, ctx, outputs, x):
         recon_x, _, _, output_embedding = outputs
@@ -126,8 +139,16 @@ class VAEExperiment(HoromaExperiment):
         self._summary_writer.add_scalar(
             'train_valid_kld_loss', eval_kld_loss, epoch)
 
-        if eval_ctx.running_loss > ctx.running_loss:
+        # add validation loss to the list of losses
+        self._last_validation_loss.append(eval_running_loss)
+
+        if len(self._last_validation_loss) < self._patience:
+            return True
+
+        if all(self._last_validation_loss[-i] >= self._last_validation_loss[-i - 1]
+               for i in range(1, self._patience + 1)):
             return False
+
         return True
 
     def before_train(self, ctx, train_train_no_aug_loader):
@@ -135,6 +156,10 @@ class VAEExperiment(HoromaExperiment):
         ctx.bce = 0
         ctx.cluster_error = 0
         ctx.kld = 0
+
+        # Add validation loss list attribute
+        if not hasattr(self, '_last_validation_loss'):
+            self._last_validation_loss = []
 
     def compute_loss(self, ctx, outputs, x):
         recon_x, mu, logvar, output_embedding = outputs

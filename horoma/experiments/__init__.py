@@ -23,6 +23,7 @@ class HoromaExperiment(object):
             summary_writer,
             embedding_optim=None,
             embedding_crit=None,
+            patience=10,
     ):
         self._embedding_file = experiment_file
         self._cluster_file = "{}_{}".format(experiment_file, '.cluster')
@@ -32,6 +33,7 @@ class HoromaExperiment(object):
         self._embedding_crit = embedding_crit
         self._cluster_label_mapping = {}
         self._summary_writer = summary_writer
+        self._patience = patience
         # send model to device
         self._embedding_model.to(DEVICE)
         self._summary_writer.add_text(
