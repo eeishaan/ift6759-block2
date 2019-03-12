@@ -53,6 +53,14 @@ def get_test_parser(parent=None):
         required=False
     )
 
+    parser.add_argument(
+        '--split',
+        type=str,
+        default='valid',
+        choices=['valid', 'test', 'train'],
+        help='Dataset split to be used',
+    )
+
     return parser
 
 
@@ -69,7 +77,7 @@ def test(args):
 
     # load data
     test_dataset = HoromaDataset(
-        data_dir=data_dir, split='test', transform=transforms.ToTensor())
+        data_dir=data_dir, split=args.split, transform=transforms.ToTensor())
     test_loader = DataLoader(test_dataset, batch_size=100, shuffle=False)
     # get embedding model
     embedding_model = embedding_factory(
