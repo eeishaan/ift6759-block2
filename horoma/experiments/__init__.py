@@ -132,6 +132,8 @@ class HoromaExperiment(object):
             ctx = SimpleNamespace()
             self.before_test(ctx)
             for _, data in enumerate(dataloader):
+                if isinstance(data, list):
+                    data = data[0]
                 data = data.to(DEVICE)
                 embedding = self._embedding_model.embedding(data)
                 predictions = self._cluster_obj.predict(embedding)
