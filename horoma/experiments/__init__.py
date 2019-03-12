@@ -20,7 +20,7 @@ class HoromaExperiment(object):
             experiment_file,
             embedding_model,
             cluster_obj,
-            summary_writer,
+            summary_writer=None,
             embedding_optim=None,
             embedding_crit=None,
             patience=10,
@@ -36,8 +36,9 @@ class HoromaExperiment(object):
         self._patience = patience
         # send model to device
         self._embedding_model.to(DEVICE)
-        self._summary_writer.add_text(
-            'embedding_model', repr(self._embedding_model), 0)
+        if summary_writer is not None:
+            self._summary_writer.add_text(
+                'embedding_model', repr(self._embedding_model), 0)
         # initialize epoch var correctly
         self._start_epoch = 0
 
