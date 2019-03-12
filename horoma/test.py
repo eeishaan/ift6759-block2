@@ -106,7 +106,7 @@ def test(args):
     with open(LABEL_MAPPING_FILE) as fob:
         map_labels = json.load(fob)
     map_labels = np.array(map_labels, dtype='<U2')
-    return test_dataset.map_labels[res]
+    return map_labels[res]
 
 
 if __name__ == '__main__':
