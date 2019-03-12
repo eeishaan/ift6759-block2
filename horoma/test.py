@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 
 import argparse
+import json
 
+import numpy as np
 import yaml
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+from horoma.constants import LABEL_MAPPING_FILE
 from horoma.experiments.factory import experiment_factory
 from horoma.models.factory import (cluster_factory, embedding_factory,
                                    supported_cluster, supported_embedding)
@@ -98,6 +101,11 @@ def test(args):
     experiment = experiment_factory(args.embedding, experiment_params)
     experiment.load_experiment()
     res = experiment.test(test_loader)
+
+    # load label mapping
+    with open(LABEL_MAPPING_FILE) as fob:
+        map_labels = json.load(fob)
+    map_labels = np.array(map_labels, dtype='<U2')
     return test_dataset.map_labels[res]
 
 
