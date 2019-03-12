@@ -1,4 +1,3 @@
-from horoma.test import test
 import argparse
 import os
 import sys
@@ -9,6 +8,8 @@ import numpy as np
 CURR_DIR = os.path.dirname(os.path.realpath(__file__))
 MODULE_DIR = os.path.realpath(os.path.join(CURR_DIR, '../'))
 sys.path.insert(0, MODULE_DIR)
+
+from horoma.test import test
 
 
 def eval_model(model_path, dataset_dir, split):
