@@ -10,7 +10,6 @@ MODULE_DIR = os.path.realpath(os.path.join(CURR_DIR, '../'))
 sys.path.insert(0, MODULE_DIR)
 
 from horoma.test import test
-from horoma.utils.data import HoromaDataset
 
 
 def eval_model(model_path, dataset_dir, split):
@@ -68,7 +67,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Arguments validation
-    if group_name is "b1phutN":
+    if group_name == "b1photN":
         print("'group_name' is not set.\nExiting ...")
         exit(1)
 
@@ -84,8 +83,7 @@ if __name__ == "__main__":
     y_pred = eval_model(model_path, args.dataset_dir, args.dataset_split)
 
     assert type(y_pred) is np.ndarray, "Return a numpy array"
-    assert len(y_pred.shape) == 2, "Make sure ndim=2 for y_pred"
-    assert y_pred.shape[1] == 3, "Make sure you have all 3 predictions for y_pred"
+    assert len(y_pred.shape) == 1, "Make sure ndim=1 for y_pred"
 
     results_fname = os.path.join(
         args.results_dir, "{}_pred_{}.txt".format(group_name, args.dataset_split))
