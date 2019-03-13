@@ -11,20 +11,21 @@ class CAEExperiment(AEExperiment):
         BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
         loss = BCE
 
-        numpy_embedding = output_embedding.detach().cpu().numpy()
-        predicted_clusters = self._cluster_obj.predict(
-            numpy_embedding).reshape(-1)
-        cluster_centers = self._cluster_obj.cluster_centers_ \
-            if hasattr(self._cluster_obj, 'cluster_centers_') \
-            else self._cluster_obj.means_
-        predicted_centers = cluster_centers[predicted_clusters]
-        predicted_centers = torch.Tensor(predicted_centers).to(DEVICE)
+        if not self._is_naive():
+            numpy_embedding = output_embedding.detach().cpu().numpy()
+            predicted_clusters = self._cluster_obj.predict(
+                numpy_embedding).reshape(-1)
+            cluster_centers = self._cluster_obj.cluster_centers_ \
+                if hasattr(self._cluster_obj, 'cluster_centers_') \
+                else self._cluster_obj.means_
+            predicted_centers = cluster_centers[predicted_clusters]
+            predicted_centers = torch.Tensor(predicted_centers).to(DEVICE)
 
-        _lambda = 0.05
-        cluster_error = _lambda * torch.norm(
-            output_embedding - predicted_centers).pow(2)
-        loss += cluster_error
+            _lambda = 0.05
+            cluster_error = _lambda * torch.norm(
+                output_embedding - predicted_centers).pow(2)
+            loss += cluster_error
+            ctx.cluster_error += cluster_error / len(x)
 
         ctx.bce += BCE / len(x)
-        ctx.cluster_error += cluster_error / len(x)
         return loss

@@ -24,6 +24,7 @@ class HoromaExperiment(object):
             embedding_optim=None,
             embedding_crit=None,
             patience=10,
+            **params
     ):
         self._embedding_file = experiment_file
         self._cluster_file = "{}_{}".format(experiment_file, '.cluster')
@@ -46,6 +47,9 @@ class HoromaExperiment(object):
         self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             self._embedding_optim) \
             if self._embedding_optim is not None else None
+
+        for k, v in params.items():
+            setattr(self, k, v)
 
     def _remap(self, x):
         return self._cluster_label_mapping[x]
