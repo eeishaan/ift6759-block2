@@ -12,6 +12,7 @@ TSNE_MODEL_DEFAULT_PATH = SAVED_MODEL_DIR / 'tsne_model.sav'
 RESULT_DIR = Path(os.path.abspath(PROJECT_ROOT / '../results'))
 PARAM_DIR = PROJECT_ROOT / 'params'
 LOG_DIR = PROJECT_ROOT / 'log'
+LABEL_MAPPING_FILE = PROJECT_ROOT / 'map_labels.json'
 
 
 class TrainMode(Enum):
