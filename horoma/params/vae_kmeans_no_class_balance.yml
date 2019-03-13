@@ -4,5 +4,5 @@ optimizer: Adam
 criterion: VAE_LOSS
 cluster_params:
   n_clusters: 17
-exp_file: ae_kmeans.pt
+exp_file: vae_kmeans_no_class_balance.pt
 epochs: 2000

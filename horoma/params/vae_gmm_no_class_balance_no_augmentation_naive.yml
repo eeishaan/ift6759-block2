@@ -4,5 +4,7 @@ optimizer: Adam
 criterion: VAE_LOSS
 cluster_params:
   n_components: 17
-exp_file: ae_gmm.pt
+exp_file: vae_gmm_no_class_balance_no_augmentation_naive.pt
+exp_params:
+  naive: True
 epochs: 2000
