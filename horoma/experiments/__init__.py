@@ -47,7 +47,7 @@ class HoromaExperiment(object):
             self._embedding_optim) \
             if self._embedding_optim is not None else None
 
-        for k, v in params.keys():
+        for k, v in params.items():
             setattr(self, k, v)
 
     def _remap(self, x):
