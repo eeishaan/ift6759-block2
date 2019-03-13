@@ -194,6 +194,8 @@ def train_model(embedding_name, cluster_method_name, mode, params, no_augmentati
         "summary_writer": writer,
     }
 
+    experiment_params.update(params.get('exp_params', {}))
+
     # get experiment object
     experiment = experiment_factory(embedding_name, experiment_params)
     experiment.train(train_train_loader, train_train_no_aug_loader,
