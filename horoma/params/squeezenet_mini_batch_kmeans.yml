@@ -4,6 +4,6 @@ optimizer: Adam
 criterion: VAE_LOSS
 cluster_params:
   n_clusters: 17
-exp_file: squeezenet_kmeans.pt
+exp_file: squeezenet_mini_batch_kmeans.pt
 epochs: 100
 
