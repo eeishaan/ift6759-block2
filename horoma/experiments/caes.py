@@ -1,10 +1,10 @@
 from types import SimpleNamespace
 
 from horoma.cfg import DEVICE
-from horoma.experiments.ae import AEExperiment
+from horoma.experiments import HoromaExperiment
 
 
-class CAESExperiment(AEExperiment):
+class CAESExperiment(HoromaExperiment):
 
     def compute_loss(self, ctx, outputs, x):
         pass
