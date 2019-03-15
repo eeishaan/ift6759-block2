@@ -52,7 +52,8 @@ if __name__ == "__main__":
     # Put your group name here
     group_name = "b2phot3"
 
-    model_path = None
+    model_path = os.path.join(MODULE_DIR, 'saved_models',
+                              'best_cae_kmeans_no_class_balance_no_augmentation_naive.pt')
     # model_path should be the absolute path on shared disk to your best model.
     # You need to ensure that they are available to evaluators on Helios.
 
