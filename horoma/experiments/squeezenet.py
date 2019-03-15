@@ -12,6 +12,7 @@ from horoma.utils.data import HoromaDataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
+
 class SqueezenetExperiment(HoromaExperiment):
 
     def squeezenet1_0(self, pretrained=False):
@@ -45,8 +46,7 @@ class SqueezenetExperiment(HoromaExperiment):
         Best _embedding_model after training
         """
 
-
-        train_loader = train_train_no_aug_loader
+        train_loader = train_train_loader
         # Flag for feature extracting. When False, we finetune the whole model,
         #   when True we only update the reshaped layer params
         feature_extract = False
@@ -106,7 +106,7 @@ class SqueezenetExperiment(HoromaExperiment):
                     outputs_copy = outputs.to('cpu')
                     output_arr = outputs_copy.detach().numpy()
                     if len(output_arr) < 2:
-                        arrtmp = []
+                        arrtmp = {}
                         arrtmp.append(int(outputs_copy.tolist()[0][0]))
                         labels2 = (torch.tensor(arrtmp)).type(torch.LongTensor)
                         labels = labels2.to(self.DEVICE)
@@ -157,7 +157,6 @@ class SqueezenetExperiment(HoromaExperiment):
 
         self.eval_model(self._embedding_model, valid_loader, optimizer)
 
-
     def set_parameter_requires_grad(self, feature_extracting):
         """  Gather the parameters to be optimized/updated in this run. If we are
            finetuning we will be updating all parameters. However, if we are
@@ -181,7 +180,7 @@ class SqueezenetExperiment(HoromaExperiment):
         """  Initialize the model
           Parameters
           ----------
-          feature_extracting: boolean - Defines if the model parameters requires grad or not. For finetunning this
+          feature_extract: boolean - Defines if the model parameters requires grad or not. For finetunning this
                                         parameter should be false.
           use_pretrained: boolean - Define if it will use a pre-trained model or not.
 
@@ -247,5 +246,3 @@ class SqueezenetExperiment(HoromaExperiment):
         print()
 
         print('Valid Acc: {:4f}'.format(epoch_acc))
-
-
