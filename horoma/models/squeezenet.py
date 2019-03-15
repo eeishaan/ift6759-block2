@@ -2,6 +2,7 @@ import torch
 from torch import nn
 import torch.nn.init as init
 
+
 class Fire(nn.Module):
 
     def __init__(self, inplanes, squeeze_planes,
@@ -23,6 +24,7 @@ class Fire(nn.Module):
             self.expand1x1_activation(self.expand1x1(x)),
             self.expand3x3_activation(self.expand3x3(x))
         ], 1)
+
 
 class SqueezeNet(nn.Module):
 
