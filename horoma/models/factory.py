@@ -7,8 +7,10 @@ from sklearn.mixture import GaussianMixture
 from horoma.models.ae import AE
 from horoma.models.cae import CAE
 from horoma.models.caes import CAES
+from horoma.models.squeezenet import SqueezeNet
 
 EMBEDDING_MODELS = {
+    'squeezenet': SqueezeNet,
     'ae': AE,
     'vae': AE,
     'cae': CAE,
