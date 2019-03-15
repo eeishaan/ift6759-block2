@@ -7,10 +7,11 @@ import PIL
 import torch
 import yaml
 from sklearn.model_selection import train_test_split
+from tensorboardX import SummaryWriter
 from torch.utils.data import DataLoader, SubsetRandomSampler
 from torchvision import transforms
 
-from horoma.constants import SAVED_MODEL_DIR, TrainMode
+from horoma.constants import LOG_DIR, SAVED_MODEL_DIR, TrainMode
 from horoma.experiments.factory import experiment_factory
 from horoma.models.factory import (cluster_factory, embedding_factory,
                                    supported_cluster, supported_embedding)
@@ -60,10 +61,22 @@ def get_train_parser(parent=None):
         'For information about param file format refer README.md'
     )
 
+    parser.add_argument(
+        '--no-augmentation',
+        action="store_true",
+        help='Specify this flag to turn off data augmentation'
+    )
+
+    parser.add_argument(
+        '--no-class-balance',
+        action="store_true",
+        help="Specify this flag to turn off class balancing "
+        "in validation dataset"
+    )
     return parser
 
 
-def train_model(embedding_name, cluster_method_name, mode, params):
+def train_model(embedding_name, cluster_method_name, mode, params, no_augmentation, no_class_balance):
     mode = TrainMode[mode]
 
     tranformer_pipeline = transforms.Compose([
@@ -74,6 +87,10 @@ def train_model(embedding_name, cluster_method_name, mode, params):
         transforms.ColorJitter(hue=0.3),
         transforms.ToTensor(),
     ])
+
+    if no_augmentation:
+        tranformer_pipeline = transforms.ToTensor()
+
     # load data
     train_dataset = HoromaDataset(split='train', transform=tranformer_pipeline)
     train_dataset_no_aug = HoromaDataset(
@@ -108,18 +125,24 @@ def train_model(embedding_name, cluster_method_name, mode, params):
             per_class_data[label] = []
         per_class_data[label].append(data)
 
-    # manufacture more data
-    max_data_per_class = 100
     augmented_data = {}
-    for class_label, class_data in per_class_data.items():
-        data_len = len(class_data)
-        augmented_data[class_label] = []
-        num_loops = int(max_data_per_class / data_len) + 1
-        for _ in range(num_loops):
-            augmented_data[class_label].extend(
+    if not no_class_balance:
+        # manufacture more data
+        max_data_per_class = 100
+        for class_label, class_data in per_class_data.items():
+            data_len = len(class_data)
+            augmented_data[class_label] = []
+            num_loops = int(max_data_per_class / data_len) + 1
+            for _ in range(num_loops):
+                augmented_data[class_label].extend(
+                    map(tranformer_pipeline, class_data))
+            augmented_data[class_label] = augmented_data[class_label][:max_data_per_class]
+    else:
+        for class_label, class_data in per_class_data.items():
+            augmented_data[class_label] = list(
                 map(tranformer_pipeline, class_data))
-        augmented_data[class_label] = augmented_data[class_label][:max_data_per_class]
 
+    # Stratified splitting
     valid_split = 0.5
     valid_dataset = {label: train_test_split(
         data, test_size=valid_split) for label, data in augmented_data.items()}
@@ -153,6 +176,14 @@ def train_model(embedding_name, cluster_method_name, mode, params):
     os.makedirs(SAVED_MODEL_DIR, exist_ok=True)
     exp_file = os.path.join(SAVED_MODEL_DIR, params['exp_file'])
 
+    # make summary writer
+    log_dir = str(LOG_DIR / params['exp_file'])
+    writer = SummaryWriter(log_dir)
+    # write param file information
+    writer.add_text('param_file', str(params), 0)
+    writer.add_text('no_augmentation', str(no_augmentation), 0)
+    writer.add_text('no_class_balance', str(no_class_balance), 0)
+
     # set up exp parameters
     experiment_params = {
         "experiment_file": exp_file,
@@ -160,7 +191,10 @@ def train_model(embedding_name, cluster_method_name, mode, params):
         "cluster_obj": cluster_model,
         "embedding_optim": embedding_optim,
         "embedding_crit": embedding_crit,
+        "summary_writer": writer,
     }
+
+    experiment_params.update(params.get('exp_params', {}))
 
     # get experiment object
     experiment = experiment_factory(embedding_name, experiment_params)
@@ -181,7 +215,8 @@ def train(args):
         params = yaml.load(fob)
 
     # train model
-    train_model(args.embedding, args.cluster, args.mode, params)
+    train_model(args.embedding, args.cluster, args.mode, params,
+                args.no_augmentation, args.no_class_balance)
 
 
 if __name__ == '__main__':

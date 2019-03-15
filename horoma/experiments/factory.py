@@ -4,11 +4,11 @@ from horoma.experiments.caes import CAESExperiment
 from horoma.experiments.squeezenet import SqueezenetExperiment
 
 SUPPORTED_EXP = {
+    'squeezenet': SqueezenetExperiment,
     'ae': AEExperiment,
     'vae': VAEExperiment,
     'cae': CAEExperiment,
-    'caes': CAESExperiment,
-    'squeezenet': SqueezenetExperiment
+    'caes': CAESExperiment
 }
 
 

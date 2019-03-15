@@ -1,0 +1,8 @@
+optimizer_params:
+  lr: 0.0001
+optimizer: Adam
+criterion: VAE_LOSS
+cluster_params:
+  n_clusters: 17
+exp_file: ae_kmeans_no_class_balance.pt
+epochs: 2000

@@ -5,4 +5,4 @@ criterion: VAE_LOSS
 cluster_params:
   n_components: 17
 exp_file: ae_gmm.pt
-epochs: 100
+epochs: 2000

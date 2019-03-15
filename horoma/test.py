@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
+import json
 
+import numpy as np
 import yaml
 from torch.utils.data import DataLoader
 from torchvision import transforms
 
-from horoma.constants import SAVED_MODEL_DIR
+from horoma.constants import LABEL_MAPPING_FILE
 from horoma.experiments.factory import experiment_factory
 from horoma.models.factory import (cluster_factory, embedding_factory,
                                    supported_cluster, supported_embedding)
@@ -55,6 +56,14 @@ def get_test_parser(parent=None):
         required=False
     )
 
+    parser.add_argument(
+        '--split',
+        type=str,
+        default='valid',
+        choices=['valid', 'test', 'train'],
+        help='Dataset split to be used',
+    )
+
     return parser
 
 
@@ -71,7 +80,7 @@ def test(args):
 
     # load data
     test_dataset = HoromaDataset(
-        data_dir=data_dir, split='test', transform=transforms.ToTensor())
+        data_dir=data_dir, split=args.split, transform=transforms.ToTensor())
     test_loader = DataLoader(test_dataset, batch_size=100, shuffle=False)
     # get embedding model
     embedding_model = embedding_factory(
@@ -80,8 +89,6 @@ def test(args):
     # get cluster model
     cluster_model = cluster_factory(
         args.cluster, {})
-
-    os.makedirs(SAVED_MODEL_DIR, exist_ok=True)
 
     # set up exp parameters
     experiment_params = {
@@ -93,7 +100,13 @@ def test(args):
     # get experiment object
     experiment = experiment_factory(args.embedding, experiment_params)
     experiment.load_experiment()
-    return experiment.test(test_loader)
+    res = experiment.test(test_loader)
+
+    # load label mapping
+    with open(LABEL_MAPPING_FILE) as fob:
+        map_labels = json.load(fob)
+    map_labels = np.array(map_labels, dtype='<U2')
+    return map_labels[res]
 
 
 if __name__ == '__main__':

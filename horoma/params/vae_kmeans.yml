@@ -5,4 +5,5 @@ criterion: VAE_LOSS
 cluster_params:
   n_clusters: 17
 exp_file: vae_kmeans.pt
-epochs: 100
+epochs: 2000
+

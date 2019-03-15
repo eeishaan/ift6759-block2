@@ -1,0 +1,10 @@
+optimizer_params:
+  lr: 0.0001
+optimizer: Adam
+criterion: VAE_LOSS
+cluster_params:
+  n_components: 17
+exp_file: ae_gmm_no_class_balance_naive.pt
+exp_params:
+  naive: True
+epochs: 2000
